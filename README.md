@@ -12,6 +12,11 @@ git clone git@github.com:rokitalab/TAPESTRY-data-preprocessing.git
 cd TAPESTRY-data-preprocessing
 ```
 
+Download data files to `data/` (required for pipeline execution):
+```bash
+bash download_data.sh
+```
+
 Pull the Docker image:
 
 ```bash
@@ -28,13 +33,7 @@ This prints the installed Python and R packages to verify the image and dependen
 
 ### Run with local PostgreSQL
 
-Download data files to `data/` (required for pipeline execution):
-```bash
-bash download_data.sh
-```
-
 Pull the image from the registry, starts a local PostgreSQL instance, and runs the pipeline container with the `data/` directory mounted read-only.
 ```bash
 docker compose up
 ```
-
