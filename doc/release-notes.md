@@ -1,6 +1,43 @@
 # release notes
 
-## current release (v1)
+## current release (v2)
+-   Release date: 2026-04-03
+-   OpenPedCan data release date: 2024-03-01 (v15)
+-   Status: available
+
+### Data sources:
+[Tumor enriched splicing](https://github.com/rokitalab/tumor-enriched-splicing):
+- `cohort-histologies.tsv`
+- `control-cohort-histologies.tsv`
+- `recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated.tsv.gz`
+- `tumor-enriched-oncofetal-splice-junction-log2-cpm-combat-corrected.qs2`
+- `tumor-enriched-oncofetal-splice-junction-ctrl-log2-cpm-combat-corrected.qs2`
+
+OpenPedCan (v15):
+- `cptac-protein-imputed-prot-expression-abundance.tsv.gz`
+- `gene-expression-rsem-tpm-collapsed.rds`
+- `rna-isoform-expression-rsem-tpm.rds`
+- `hope-protein-imputed-prot-expression-abundance.tsv.gz`
+- `histologies.tsv`
+
+```         
+v2/
+├── cohort-histologies.tsv
+├── control-cohort-histologies.tsv
+├── cptac-protein-imputed-prot-expression-abundance.tsv.gz
+├── gene-expression-rsem-tpm-collapsed.rds
+├── histologies.tsv
+├── hope-protein-imputed-prot-expression-abundance.tsv.gz
+├── md5sum.txt
+├── recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated.tsv.gz
+├── release-notes.md
+├── rna-isoform-expression-rsem-tpm.rds
+├── tumor-enriched-oncofetal-splice-junction-log2-cpm-combat-corrected.qs2
+└── tumor-enriched-oncofetal-splice-junction-ctrl-log2-cpm-combat-corrected.qs2
+```
+
+
+## archived release (v1)
 -   Release date: 2026-01-13
 -   OpenPedCan data release date: 2024-03-01 (v15)
 -   Status: available
