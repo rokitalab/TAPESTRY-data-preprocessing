@@ -1,0 +1,24 @@
+# Data files (large, mounted as volume at runtime)
+data/
+
+# R/analysis artifacts
+analyses/
+figures/
+doc/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Secrets
+.env
+.env.*
+
+# Git
+.git/
+.gitignore
+
+# macOS
+.DS_Store
