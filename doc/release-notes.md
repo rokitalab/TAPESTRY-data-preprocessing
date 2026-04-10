@@ -1,12 +1,12 @@
 # release notes
 
 ## current release (v2)
--   Release date: 2026-04-03
+-   Release date: 2026-04-10
 -   OpenPedCan data release date: 2024-03-01 (v15)
 -   Status: available
 
 ### Data sources:
-[Tumor enriched splicing repo – commit 5c9b5acd00857f5cf2d145a5ecca5fd54fa4beb9](https://github.com/rokitalab/tumor-enriched-splicing/tree/5c9b5acd00857f5cf2d145a5ecca5fd54fa4beb9):
+Tumor enriched splicing repo – [commit 5c9b5acd00857f5cf2d145a5ecca5fd54fa4beb9](https://github.com/rokitalab/tumor-enriched-splicing/tree/5c9b5acd00857f5cf2d145a5ecca5fd54fa4beb9):
 - `cohort-histologies.tsv`
 - `control-cohort-histologies.tsv`
 - `recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated.tsv.gz`
