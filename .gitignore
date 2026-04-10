@@ -47,3 +47,36 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.venv*/
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+
+# Environment files
+.env
+.env.*
+
+# Database artifacts
+*.pg_dump
+*.pgdump
+*.dump
+*.bak
+*.backup
+*.sql.gz
+*.tar.gz
+
+# Seed data (local only; keep SQL migrations)
+database/seeds/*.csv
+database/seeds/*.tsv
+database/seeds/*.parquet
+database/seeds/*.jsonl
+
+# macOS
+.DS_Store
