@@ -13,13 +13,18 @@ Tumor enriched splicing repo – [commit 5c9b5acd00857f5cf2d145a5ecca5fd54fa4beb
 - `tumor-enriched-oncofetal-splice-junction-cpm-ctrls.rds`
 - `tumor-enriched-oncofetal-splice-junction-cpm.rds`
 
+Tumor enriched splicing (v9 data release):
+- `evodevo*`
+- `GSE73721*`
+- `ped-normal-brain*`
+
 OpenPedCan (v15):
 - `cptac-protein-imputed-prot-expression-abundance.tsv.gz`
 - `gene-expression-rsem-tpm-collapsed.rds`
 - `rna-isoform-expression-rsem-tpm.rds`
 - `hope-protein-imputed-prot-expression-abundance.tsv.gz`
 - `histologies.tsv`
-- `independent-specimens.*`
+- `independent-specimens*`
 
 ```         
 v2/
@@ -27,7 +32,12 @@ v2/
 ├── cohort-histologies.tsv
 ├── control-cohort-histologies.tsv
 ├── cptac-protein-imputed-prot-expression-abundance.tsv.gz
+├── evodevo_gene-expression-rsem-tpm-collapsed.all.rds
+├── evodevo_rna-isoform-expression-rsem-tpm.rds
+├── evodevo-histologies.tsv
 ├── gene-expression-rsem-tpm-collapsed.rds
+├── GSE73721-normal-histologies.tsv
+├── GSE73721-normal-rna-isoform-expression-rsem-tpm.rds
 ├── histologies.tsv
 ├── hope-protein-imputed-prot-expression-abundance.tsv.gz
 ├── independent-specimens.rnaseqpanel.primary.tsv
@@ -35,6 +45,9 @@ v2/
 ├── independent-specimens.wgswxspanel.primary.prefer.wgs.tsv
 ├── independent-specimens.wgswxspanel.relapse.prefer.wgs.tsv
 ├── md5sum.txt
+├── ped-normal-brain-gene-expression-rsem-tpm.all.rds
+├── ped-normal-brain-histologies.tsv
+├── ped-normal-brain-isoform-expression-rsem-tpm.rds
 ├── recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated.tsv.gz
 ├── release-notes.md
 ├── rna-isoform-expression-rsem-tpm.rds
