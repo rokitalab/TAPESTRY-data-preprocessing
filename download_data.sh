@@ -3,7 +3,7 @@ set -o pipefail
 
 # Define S3 bucket location and data release version
 URL=${BUCKET_URL:-https://s3.amazonaws.com/bti-openaccess-us-east-1-prd-rokita-lab/tapestry} 
-RELEASE=${RELEASE:-v1}
+RELEASE=${RELEASE:-v2}
 
 # Remove old symlinks in data
 find data -type l -delete
@@ -26,7 +26,7 @@ do
 done
 
 # Download gencode gtf
-GENCODE39="https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_39/gencode.v39.primary_assembly.annotation.gtf.gz"
+GENCODE39="https://bti-openaccess-us-east-1-prd-references.s3.us-east-1.amazonaws.com/gencode.v39.primary_assembly.annotation.gtf.gz"
 cd data
 if [ ! -e ${GENCODE39##*/} ]
 then
