@@ -12,7 +12,7 @@ from pathlib import Path
 
 from .connection import get_connection
 
-MIGRATIONS_DIR = Path(__file__).resolve().parent.parent / "database" / "migrations"
+MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
 
 
 def _run_sql_file(path: Path) -> None:
