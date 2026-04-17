@@ -19,20 +19,18 @@ def main() -> None:
             # --- row counts ---
             cur.execute("""
                 SELECT
-                    (SELECT COUNT(*) FROM cancer)  AS cancer,
                     (SELECT COUNT(*) FROM patient) AS patient,
                     (SELECT COUNT(*) FROM sample)  AS sample
             """)
             counts = cur.fetchone()
             print("Row counts")
-            print(f"  cancer:  {counts[0]}")
-            print(f"  patient: {counts[1]}")
-            print(f"  sample:  {counts[2]}")
+            print(f"  patient: {counts[0]}")
+            print(f"  sample:  {counts[1]}")
 
             # --- sample: tumor vs control ---
             cur.execute("""
                 SELECT
-                    CASE WHEN cancer_key IS NOT NULL THEN 'tumor' ELSE 'control' END AS type,
+                    CASE WHEN cancer_group IS NOT NULL THEN 'tumor' ELSE 'control' END AS type,
                     COUNT(*) AS n
                 FROM sample
                 GROUP BY 1
@@ -67,16 +65,16 @@ def main() -> None:
             # --- nulls check ---
             cur.execute("""
                 SELECT
-                    COUNT(*) FILTER (WHERE patient_id IS NULL) AS no_patient,
-                    COUNT(*) FILTER (WHERE cancer_key  IS NULL) AS no_cancer,
-                    COUNT(*) FILTER (WHERE rna_library IS NULL) AS no_rna_library
+                    COUNT(*) FILTER (WHERE patient_id   IS NULL) AS no_patient,
+                    COUNT(*) FILTER (WHERE cancer_group IS NULL) AS no_cancer_group,
+                    COUNT(*) FILTER (WHERE rna_library  IS NULL) AS no_rna_library
                 FROM sample
             """)
             row = cur.fetchone()
             print("\nNulls in sample")
-            print(f"  patient_id=NULL:  {row[0]}")
-            print(f"  cancer_key=NULL:  {row[1]}")
-            print(f"  rna_library=NULL: {row[2]}")
+            print(f"  patient_id=NULL:    {row[0]}")
+            print(f"  cancer_group=NULL:  {row[1]}")
+            print(f"  rna_library=NULL:   {row[2]}")
 
 
 if __name__ == "__main__":
