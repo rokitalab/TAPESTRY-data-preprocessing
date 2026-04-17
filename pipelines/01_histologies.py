@@ -84,7 +84,7 @@ def _build_control_lookup() -> dict[str, dict]:
         if not p.exists():
             continue
         for row in read_tsv(p, delim):
-            k = row.get(key_col)
+            k = _str(row.get(key_col))
             if k and k not in lookup:
                 lookup[k] = row
     return lookup
@@ -96,7 +96,7 @@ def load_tumor(rows: list[dict[str, str]], conn) -> None:
 
     for row in rows:
         seen_cancer.setdefault(_cancer_key(row), None)
-        pid = row["Kids_First_Participant_ID"]
+        pid = _str(row["Kids_First_Participant_ID"])
         seen_patient.setdefault(pid, row)
 
     with conn.cursor() as cur:
@@ -157,8 +157,8 @@ def load_tumor(rows: list[dict[str, str]], conn) -> None:
             """,
             [
                 (
-                    row["Kids_First_Biospecimen_ID"],
-                    row["Kids_First_Participant_ID"],
+                    _str(row["Kids_First_Biospecimen_ID"]),
+                    _str(row["Kids_First_Participant_ID"]),
                     cancer_keys[_cancer_key(row)],
                     _str(row.get("match_id")),
                     _str(row.get("extent_of_tumor_resection")),
@@ -183,7 +183,7 @@ def load_controls(
 ) -> None:
     seen_patient: dict[str, dict] = {}
     for row in control_rows:
-        detail = lookup.get(row["sample_id"], {})
+        detail = lookup.get(_str(row["sample_id"]), {})
         pid = _str(detail.get("Kids_First_Participant_ID"))
         if pid and pid not in seen_patient:
             seen_patient[pid] = detail
@@ -224,11 +224,11 @@ def load_controls(
             """,
             [
                 (
-                    row["sample_id"],
-                    _str(lookup.get(row["sample_id"], {}).get("Kids_First_Participant_ID")),
+                    _str(row["sample_id"]),
+                    _str(lookup.get(_str(row["sample_id"]), {}).get("Kids_First_Participant_ID")),
                     _str(row.get("subgroup")),
-                    _str(lookup.get(row["sample_id"], {}).get("primary_site")),
-                    _str(lookup.get(row["sample_id"], {}).get("composition")),
+                    _str(lookup.get(_str(row["sample_id"]), {}).get("primary_site")),
+                    _str(lookup.get(_str(row["sample_id"]), {}).get("composition")),
                     _str(row.get("cohort")),
                     _str(row.get("subgroup")),
                     _rna_library(row.get("RNA_library")),
