@@ -40,3 +40,10 @@ CREATE TABLE IF NOT EXISTS "sample" (
     "composition"      TEXT,
     "tumor_descriptor" TEXT
 );
+
+CREATE INDEX ON sample (patient_id);
+CREATE INDEX ON sample (cohort);
+CREATE INDEX ON sample (cancer_key) WHERE cancer_key IS NULL;
+CREATE INDEX ON sample (rna_library);
+CREATE INDEX ON cancer (cancer_group);
+CREATE INDEX ON cancer (broad_histology);
