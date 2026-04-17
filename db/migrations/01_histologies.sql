@@ -1,14 +1,6 @@
 -- 01_histologies.sql
 -- Tables populated by the histologies ETL (pipelines/01_histologies.py).
--- Insert order: cancer → patient → sample
-
-CREATE TABLE IF NOT EXISTS "cancer" (
-    "cancer_key"        BIGSERIAL PRIMARY KEY,
-    "cancer_group"      TEXT,
-    "broad_histology"   TEXT,
-    "molecular_subtype" TEXT,
-    UNIQUE ("cancer_group", "broad_histology", "molecular_subtype")
-);
+-- Insert order: patient → sample
 
 CREATE TABLE IF NOT EXISTS "patient" (
     "patient_id"             TEXT PRIMARY KEY,
@@ -26,24 +18,23 @@ CREATE TABLE IF NOT EXISTS "patient" (
 );
 
 CREATE TABLE IF NOT EXISTS "sample" (
-    "biospecimen_id"   TEXT PRIMARY KEY,
-    "patient_id"       TEXT REFERENCES "patient"("patient_id") ON DELETE CASCADE,
-    "cancer_key"       BIGINT REFERENCES "cancer"("cancer_key"),
-    "match_id"         TEXT,
-    "resection"        TEXT,
-    "primary_site"     TEXT,
-    "cns_region"       TEXT,
-    "plot_group"       TEXT,
-    "cohort"           TEXT,
-    "sub_cohort"       TEXT,
-    "rna_library"      TEXT,
-    "composition"      TEXT,
-    "tumor_descriptor" TEXT
+    "biospecimen_id"    TEXT PRIMARY KEY,
+    "patient_id"        TEXT REFERENCES "patient"("patient_id") ON DELETE CASCADE,
+    "cancer_group"      TEXT,
+    "molecular_subtype" TEXT,
+    "match_id"          TEXT,
+    "resection"         TEXT,
+    "primary_site"      TEXT,
+    "cns_region"        TEXT,
+    "plot_group"        TEXT,
+    "cohort"            TEXT,
+    "sub_cohort"        TEXT,
+    "rna_library"       TEXT,
+    "composition"       TEXT,
+    "tumor_descriptor"  TEXT
 );
 
 CREATE INDEX ON sample (patient_id);
 CREATE INDEX ON sample (cohort);
-CREATE INDEX ON sample (cancer_key) WHERE cancer_key IS NULL;
+CREATE INDEX ON sample (cancer_group);
 CREATE INDEX ON sample (rna_library);
-CREATE INDEX ON cancer (cancer_group);
-CREATE INDEX ON cancer (broad_histology);

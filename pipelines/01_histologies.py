@@ -2,7 +2,7 @@
 """
 01_histologies.py
 
-ETL for histologies files → cancer, patient, sample tables.
+ETL for histologies files → patient, sample tables.
 
 Run:
   python -m pipelines.01_histologies
@@ -68,14 +68,6 @@ def read_tsv(path: Path, delimiter: str = "\t") -> list[dict[str, str]]:
         return list(csv.DictReader(f, delimiter=delimiter))
 
 
-def _cancer_key(row: dict[str, str]) -> tuple[str | None, ...]:
-    return (
-        _str(row.get("cancer_group")),
-        _str(row.get("broad_histology")),
-        _str(row.get("molecular_subtype")),
-    )
-
-
 def _build_control_lookup() -> dict[str, dict]:
     """Build a mapping from control sample_id → secondary-file row."""
     lookup: dict[str, dict] = {}
@@ -91,31 +83,14 @@ def _build_control_lookup() -> dict[str, dict]:
 
 
 def load_tumor(rows: list[dict[str, str]], conn) -> None:
-    seen_cancer: dict[tuple, None] = {}
     seen_patient: dict[str, dict] = {}
 
     for row in rows:
-        seen_cancer.setdefault(_cancer_key(row), None)
         pid = _str(row["Kids_First_Participant_ID"])
         seen_patient.setdefault(pid, row)
 
     with conn.cursor() as cur:
-        # 1. cancer
-        cancer_keys: dict[tuple, int] = {}
-        for combo in seen_cancer:
-            cur.execute(
-                """
-                INSERT INTO cancer (cancer_group, broad_histology, molecular_subtype)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (cancer_group, broad_histology, molecular_subtype)
-                    DO UPDATE SET cancer_group = EXCLUDED.cancer_group
-                RETURNING cancer_key
-                """,
-                combo,
-            )
-            cancer_keys[combo] = cur.fetchone()[0]
-
-        # 2. patient
+        # 1. patient
         cur.executemany(
             """
             INSERT INTO patient (
@@ -144,22 +119,23 @@ def load_tumor(rows: list[dict[str, str]], conn) -> None:
             ],
         )
 
-        # 3. sample
+        # 2. sample
         cur.executemany(
             """
             INSERT INTO sample (
-                biospecimen_id, patient_id, cancer_key,
+                biospecimen_id, patient_id, cancer_group, molecular_subtype,
                 match_id, resection, primary_site, cns_region,
                 plot_group, cohort, sub_cohort, rna_library,
                 composition, tumor_descriptor
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (biospecimen_id) DO NOTHING
             """,
             [
                 (
                     _str(row["Kids_First_Biospecimen_ID"]),
                     _str(row["Kids_First_Participant_ID"]),
-                    cancer_keys[_cancer_key(row)],
+                    _str(row.get("cancer_group")),
+                    _str(row.get("molecular_subtype")),
                     _str(row.get("match_id")),
                     _str(row.get("extent_of_tumor_resection")),
                     _str(row.get("primary_site")),
@@ -212,7 +188,7 @@ def load_controls(
                 ],
             )
 
-        # 2. sample (cancer_key always NULL for controls)
+        # 2. sample (controls have no cancer_group or molecular_subtype)
         cur.executemany(
             """
             INSERT INTO sample (
