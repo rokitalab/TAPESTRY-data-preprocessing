@@ -6,12 +6,15 @@
 -   Status: available
 
 ### Data sources:
-Tumor enriched splicing repo – [commit 5c9b5acd00857f5cf2d145a5ecca5fd54fa4beb9](https://github.com/rokitalab/tumor-enriched-splicing/tree/5c9b5acd00857f5cf2d145a5ecca5fd54fa4beb9):
+Tumor enriched splicing repo – [commit b001c16005f1bf7c7e66861816051a8291cc2159](https://github.com/rokitalab/tumor-enriched-splicing/tree/b001c16005f1bf7c7e66861816051a8291cc2159):
 - `cohort-histologies.tsv`
 - `control-cohort-histologies.tsv`
 - `recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated.tsv.gz`
 - `tumor-enriched-oncofetal-splice-junction-cpm-ctrls.rds`
 - `tumor-enriched-oncofetal-splice-junction-cpm.rds`
+- `tumor-enriched-oncofetal-splice-junction-log2-cpm-combat-corrected.qs2`
+- `pbta-gene-expr-log2-tpm-combat-corrected.qs2`
+- `pbta-isoform-expr-log2-tpm-combat-corrected.qs2`
 
 Tumor enriched splicing (v9 data release):
 - `evodevo*`
@@ -45,6 +48,8 @@ v2/
 ├── independent-specimens.wgswxspanel.primary.prefer.wgs.tsv
 ├── independent-specimens.wgswxspanel.relapse.prefer.wgs.tsv
 ├── md5sum.txt
+├── pbta-gene-expr-log2-tpm-combat-corrected.qs2
+├── pbta-isoform-expr-log2-tpm-combat-corrected.qs2
 ├── ped-normal-brain-gene-expression-rsem-tpm.all.rds
 ├── ped-normal-brain-histologies.tsv
 ├── ped-normal-brain-isoform-expression-rsem-tpm.rds
@@ -52,7 +57,8 @@ v2/
 ├── release-notes.md
 ├── rna-isoform-expression-rsem-tpm.rds
 ├── tumor-enriched-oncofetal-splice-junction-cpm-ctrls.rds
-└── tumor-enriched-oncofetal-splice-junction-cpm.rds
+├── tumor-enriched-oncofetal-splice-junction-cpm.rds
+└── tumor-enriched-oncofetal-splice-junction-log2-cpm-combat-corrected.qs2
 ```
 
 
