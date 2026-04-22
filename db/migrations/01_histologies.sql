@@ -30,8 +30,9 @@ CREATE TABLE IF NOT EXISTS "sample" (
     "cohort"            TEXT,
     "sub_cohort"        TEXT,
     "rna_library"       TEXT,
-    "composition"       TEXT,
-    "tumor_descriptor"  TEXT
+    "composition"            TEXT,
+    "tumor_descriptor"       TEXT,
+    "is_independent_primary" BOOLEAN
 );
 
 CREATE INDEX ON sample (patient_id);
