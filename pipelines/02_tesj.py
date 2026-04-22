@@ -128,15 +128,22 @@ def load(conn) -> None:
     seen_junctions: dict[str, dict] = {}
     seen_domains: dict[str, list[tuple]] = {}
     sample_rows: list[tuple] = []
+    # (junction, plot_group) → set of biospecimen_ids
+    recurrence_samples: dict[tuple[str, str], set[str]] = {}
 
-    print(f"Reading {RECURRENT_FILE} ...")
     for row in read_tsv_gz(RECURRENT_FILE):
         junc = row["junction"]
         if junc not in seen_junctions:
             seen_junctions[junc] = _junction_dict(row)
             seen_domains[junc] = _domain_rows(row)
+
+        biospecimen_id = _str(row["Kids_First_Biospecimen_ID"])
+        plot_group = _str(row["plot_group"])
+        if biospecimen_id and plot_group:
+            recurrence_samples.setdefault((junc, plot_group), set()).add(biospecimen_id)
+
         sample_rows.append((
-            _str(row["Kids_First_Biospecimen_ID"]),
+            biospecimen_id,
             junc,
             _float(row["junction_cpm"]),
             _float(row["gene_tpm"]),
@@ -144,10 +151,9 @@ def load(conn) -> None:
             _str(row["event_type_sample"]),
         ))
 
-    print(f"  {len(seen_junctions):,} unique junctions, {len(sample_rows):,} sample-junction rows")
+    print(f"Read {len(seen_junctions)} unique junctions, {len(sample_rows)} sample-junction rows")
 
     with conn.cursor() as cur:
-        print("Inserting tesj ...")
         cur.executemany(
             """
             INSERT INTO tesj (
@@ -174,7 +180,6 @@ def load(conn) -> None:
             list(seen_junctions.values()),
         )
 
-        print("Inserting tesj_domain ...")
         domain_rows = [d for domains in seen_domains.values() for d in domains]
         cur.executemany(
             """
@@ -186,7 +191,6 @@ def load(conn) -> None:
             domain_rows,
         )
 
-        print("Inserting sample_tesj ...")
         cur.executemany(
             """
             INSERT INTO sample_tesj (
@@ -198,8 +202,40 @@ def load(conn) -> None:
             sample_rows,
         )
 
+        cur.execute("""
+            SELECT plot_group, COUNT(*) AS n
+            FROM sample
+            WHERE rna_library IS NOT NULL
+              AND plot_group IS NOT NULL
+              AND is_independent_primary = TRUE
+            GROUP BY plot_group
+        """)
+        total_by_plot_group = {pg: n for pg, n in cur.fetchall()}
+
+        recurrence_rows = []
+        for (junc, plot_group), biospecimen_ids in recurrence_samples.items():
+            total = total_by_plot_group.get(plot_group)
+            if total:
+                recurrence_rows.append((
+                    junc,
+                    plot_group,
+                    len(biospecimen_ids),
+                    total,
+                    round(len(biospecimen_ids) / total * 100, 2),
+                ))
+
+        cur.executemany(
+            """
+            INSERT INTO tesj_recurrence (
+                junction, plot_group, sample_count, total_samples, pct
+            ) VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (junction, plot_group) DO NOTHING
+            """,
+            recurrence_rows,
+        )
+
     conn.commit()
-    print("Done.")
+    print("02_tesj done.")
 
 
 def main() -> None:

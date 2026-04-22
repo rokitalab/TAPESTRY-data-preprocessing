@@ -1,6 +1,6 @@
 -- 02_tesj.sql
 -- Tables populated by the TESJ ETL (pipelines/02_tesj.py).
--- Insert order: tesj → tesj_domain → sample_tesj
+-- Insert order: tesj → tesj_domain → sample_tesj → tesj_recurrence
 
 CREATE TABLE IF NOT EXISTS "tesj" (
     "junction"               TEXT PRIMARY KEY,
@@ -52,7 +52,17 @@ CREATE TABLE IF NOT EXISTS "sample_tesj" (
     PRIMARY KEY ("biospecimen_id", "junction")
 );
 
+CREATE TABLE IF NOT EXISTS "tesj_recurrence" (
+    "junction"       TEXT NOT NULL REFERENCES "tesj"("junction") ON DELETE CASCADE,
+    "plot_group"     TEXT NOT NULL,
+    "sample_count"   INTEGER NOT NULL,
+    "total_samples"  INTEGER NOT NULL,
+    "pct"            REAL NOT NULL,
+    PRIMARY KEY ("junction", "plot_group")
+);
+
 CREATE INDEX ON tesj (gene_symbol);
 CREATE INDEX ON tesj (junction_preference);
 CREATE INDEX ON tesj_domain (junction);
 CREATE INDEX ON sample_tesj (junction);
+CREATE INDEX ON tesj_recurrence (plot_group);

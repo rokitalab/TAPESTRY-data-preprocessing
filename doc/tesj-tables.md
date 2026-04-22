@@ -115,17 +115,30 @@ One row per `(biospecimen_id, junction)` pair.
 | `junction_count` | INTEGER | `junction_count` | |
 | `event_type_sample` | TEXT | `event_type_sample` | |
 
+## tesj_recurrence columns
+
+One row per `(junction, plot_group)` pair. Denominator is primary tumor RNA-seq samples (`tumor_descriptor IN ('Primary Tumor', 'Initial CNS Tumor')` and `rna_library IS NOT NULL`) per plot_group from the `sample` table.
+
+| Column | Type | Notes |
+|---|---|---|
+| `junction` | TEXT FK | References `tesj.junction` |
+| `plot_group` | TEXT | |
+| `sample_count` | INTEGER | Unique samples in the recurrent file with this junction in this plot_group |
+| `total_samples` | INTEGER | Total RNA-seq samples in this plot_group from `sample` table |
+| `pct` | REAL | `sample_count / total_samples * 100`, rounded to 2 decimal places |
+
 ## Relationships
 
 ```
 tesj        (junction)       ←── tesj_domain.junction
 tesj        (junction)       ←── sample_tesj.junction
+tesj        (junction)       ←── tesj_recurrence.junction
 sample      (biospecimen_id) ←── sample_tesj.biospecimen_id
 ```
 
 ## ETL
 
-Populated by `pipelines/02_tesj.py`. Insert order: `tesj → tesj_domain → sample_tesj`.
+Populated by `pipelines/02_tesj.py`. Insert order: `tesj → tesj_domain → sample_tesj → tesj_recurrence`.
 
 The recurrent file is read in a single pass. Junctions are deduplicated in memory before insertion.
 

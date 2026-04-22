@@ -80,15 +80,17 @@ def main() -> None:
             # --- TESJ row counts ---
             cur.execute("""
                 SELECT
-                    (SELECT COUNT(*) FROM tesj)        AS tesj,
-                    (SELECT COUNT(*) FROM tesj_domain) AS tesj_domain,
-                    (SELECT COUNT(*) FROM sample_tesj) AS sample_tesj
+                    (SELECT COUNT(*) FROM tesj)            AS tesj,
+                    (SELECT COUNT(*) FROM tesj_domain)     AS tesj_domain,
+                    (SELECT COUNT(*) FROM sample_tesj)     AS sample_tesj,
+                    (SELECT COUNT(*) FROM tesj_recurrence) AS tesj_recurrence
             """)
             counts = cur.fetchone()
             print("\nTESJ row counts")
-            print(f"  tesj:        {counts[0]}")
-            print(f"  tesj_domain: {counts[1]}")
-            print(f"  sample_tesj: {counts[2]}")
+            print(f"  tesj:             {counts[0]}")
+            print(f"  tesj_domain:      {counts[1]}")
+            print(f"  sample_tesj:      {counts[2]}")
+            print(f"  tesj_recurrence:  {counts[3]}")
 
             # --- TESJ: by junction_preference ---
             cur.execute("""
