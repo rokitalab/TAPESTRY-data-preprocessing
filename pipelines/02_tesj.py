@@ -20,7 +20,7 @@ from db.connection import get_connection
 
 _NA = {"NA", "N/A", "", "nan", "NaN", "None", "none", "null"}
 
-RECURRENT_FILE = Path("data/v2/recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated.tsv.gz")
+RECURRENT_FILE = Path("data/recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated.tsv.gz")
 
 
 def _str(val: str | None) -> str | None:
