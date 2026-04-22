@@ -23,7 +23,8 @@ One row per `(junction, biospecimen_id)` pair.
 |---|---|---|---|
 | `junction` | TEXT FK | column header / row key | References `tesj.junction` |
 | `biospecimen_id` | TEXT FK | column header | References `sample.biospecimen_id` |
-| `cpm` | REAL | matrix cell value | NULL where source value is R `NA`; `0.0` is a valid measurement |
+| `cpm` | REAL | CPM matrix cell value | NULL where source value is R `NA`; `0.0` is a valid measurement |
+| `log2_cpm_corrected` | REAL | log2 CPM matrix cell value | Batch-corrected; tumor samples only — NULL for all controls |
 
 ## Relationships
 
@@ -36,12 +37,15 @@ sample (biospecimen_id) ←── tesj_cpm.biospecimen_id
 
 Populated by `pipelines/03_tesj_cpm.py` from two source files:
 
-| File | Samples | Notes |
-|---|---|---|
-| `data/v2/tumor-enriched-oncofetal-splice-junction-cpm.rds` | 1,976 (`BS_*` Kids First IDs) | Tumor cohort |
-| `data/v2/tumor-enriched-oncofetal-splice-junction-cpm-ctrls.rds` | 241 (GTEx IDs) | Controls; all IDs present in `sample` table |
+| File | Format | Samples | Notes |
+|---|---|---|---|
+| `data/v2/tumor-enriched-oncofetal-splice-junction-cpm.rds` | RDS | 1,976 (`BS_*` Kids First IDs) | Tumor cohort raw CPM |
+| `data/v2/tumor-enriched-oncofetal-splice-junction-cpm-ctrls.rds` | RDS | 241 (GTEx IDs) | Controls; all IDs present in `sample` table |
+| `data/v2/tumor-enriched-oncofetal-splice-junction-log2-cpm-combat-corrected.qs2` | qs2 | 1,976 (`BS_*` Kids First IDs) | Tumor cohort log2 CPM, batch-corrected |
 
-Both files are `data.table` / `data.frame` objects with junctions as rows and `biospecimen_id` as columns. The pipeline reads each via `Rscript --vanilla`, unpivots from wide to long with pandas `melt`, and inserts in batches of 50,000 rows.
+All three files are wide-format `data.frame` objects with junctions as rows and `biospecimen_id` as columns. The pipeline reads each via `Rscript --vanilla` (using `readRDS` for RDS files and `qs2::qs_read` for qs2), unpivots from wide to long with pandas `melt`, and inserts in batches of 50,000 rows.
+
+For tumor samples, the raw CPM and log2 corrected CPM files are merged on `(junction, biospecimen_id)` before insertion. Controls have `log2_cpm_corrected = NULL`.
 
 R `NA` values are coerced to `NULL`; they are not stored as IEEE NaN. A `cpm` of `0.0` means the junction was detected with zero counts — it is distinct from `NULL`.
 
