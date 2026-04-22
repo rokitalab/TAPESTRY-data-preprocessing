@@ -117,7 +117,7 @@ One row per `(biospecimen_id, junction)` pair.
 
 ## tesj_recurrence columns
 
-One row per `(junction, plot_group)` pair. Denominator is primary tumor RNA-seq samples (`tumor_descriptor IN ('Primary Tumor', 'Initial CNS Tumor')` and `rna_library IS NOT NULL`) per plot_group from the `sample` table.
+One row per `(junction, plot_group)` pair. Denominator is the count of independent-primary RNA-seq specimens per `plot_group` from the `sample` table (`is_independent_primary = TRUE AND rna_library IS NOT NULL AND plot_group IS NOT NULL`).
 
 | Column | Type | Notes |
 |---|---|---|
