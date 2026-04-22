@@ -28,6 +28,7 @@ services:
       bash -c "
         python -m db.migrate &&
         python -m pipelines.01_histologies &&
+        python -m pipelines.02_tesj &&
         python -m pipelines.status
       "
     volumes:
