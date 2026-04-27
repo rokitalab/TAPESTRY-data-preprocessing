@@ -77,40 +77,40 @@ def main() -> None:
             print(f"  cancer_group=NULL:  {row[1]}")
             print(f"  rna_library=NULL:   {row[2]}")
 
-            # --- TESJ row counts ---
+            # --- TEJ row counts ---
             cur.execute("""
                 SELECT
-                    (SELECT COUNT(*) FROM tesj)            AS tesj,
-                    (SELECT COUNT(*) FROM tesj_domain)     AS tesj_domain,
-                    (SELECT COUNT(*) FROM sample_tesj)     AS sample_tesj,
-                    (SELECT COUNT(*) FROM tesj_recurrence) AS tesj_recurrence
+                    (SELECT COUNT(*) FROM tej)            AS tej,
+                    (SELECT COUNT(*) FROM tej_domain)     AS tej_domain,
+                    (SELECT COUNT(*) FROM sample_tej)     AS sample_tej,
+                    (SELECT COUNT(*) FROM tej_recurrence) AS tej_recurrence
             """)
             counts = cur.fetchone()
-            print("\nTESJ row counts")
-            print(f"  tesj:             {counts[0]}")
-            print(f"  tesj_domain:      {counts[1]}")
-            print(f"  sample_tesj:      {counts[2]}")
-            print(f"  tesj_recurrence:  {counts[3]}")
+            print("\nTEJ row counts")
+            print(f"  tej:             {counts[0]}")
+            print(f"  tej_domain:      {counts[1]}")
+            print(f"  sample_tej:      {counts[2]}")
+            print(f"  tej_recurrence:  {counts[3]}")
 
-            # --- TESJ: by junction_preference ---
+            # --- TEJ: by junction_preference ---
             cur.execute("""
                 SELECT junction_preference, COUNT(*) AS n
-                FROM tesj
+                FROM tej
                 GROUP BY junction_preference
                 ORDER BY n DESC
             """)
-            print("\nTESJ by junction_preference")
+            print("\nTEJ by junction_preference")
             for row in cur.fetchall():
                 print(f"  {row[0]}: {row[1]}")
 
-            # --- TESJ: by consensus_specificity ---
+            # --- TEJ: by consensus_specificity ---
             cur.execute("""
                 SELECT consensus_specificity, COUNT(*) AS n
-                FROM tesj
+                FROM tej
                 GROUP BY consensus_specificity
                 ORDER BY n DESC
             """)
-            print("\nTESJ by consensus_specificity")
+            print("\nTEJ by consensus_specificity")
             for row in cur.fetchall():
                 print(f"  {row[0]}: {row[1]}")
 

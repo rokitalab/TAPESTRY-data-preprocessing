@@ -1,8 +1,8 @@
--- 02_tesj.sql
--- Tables populated by the TESJ ETL (pipelines/02_tesj.py).
--- Insert order: tesj → tesj_domain → sample_tesj → tesj_recurrence
+-- 02_tej.sql
+-- Tables populated by the TEJ ETL (pipelines/02_tej.py).
+-- Insert order: tej → tej_domain → sample_tej → tej_recurrence
 
-CREATE TABLE IF NOT EXISTS "tesj" (
+CREATE TABLE IF NOT EXISTS "tej" (
     "junction"               TEXT PRIMARY KEY,
     "chr"                    TEXT,
     "strand"                 TEXT CHECK ("strand" IN ('+', '-')),
@@ -29,9 +29,9 @@ CREATE TABLE IF NOT EXISTS "tesj" (
     "max_mean_cpm_postnatal" REAL
 );
 
-CREATE TABLE IF NOT EXISTS "tesj_domain" (
+CREATE TABLE IF NOT EXISTS "tej_domain" (
     "id"              SERIAL PRIMARY KEY,
-    "junction"        TEXT NOT NULL REFERENCES "tesj"("junction") ON DELETE CASCADE,
+    "junction"        TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
     "domain_source"   TEXT NOT NULL,
     "domain_type"     TEXT,
     "domain_name"     TEXT,
@@ -42,9 +42,9 @@ CREATE TABLE IF NOT EXISTS "tesj_domain" (
     "overlaps_domain" BOOLEAN
 );
 
-CREATE TABLE IF NOT EXISTS "sample_tesj" (
+CREATE TABLE IF NOT EXISTS "sample_tej" (
     "biospecimen_id"   TEXT NOT NULL REFERENCES "sample"("biospecimen_id") ON DELETE CASCADE,
-    "junction"         TEXT NOT NULL REFERENCES "tesj"("junction") ON DELETE CASCADE,
+    "junction"         TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
     "junction_cpm"     REAL,
     "gene_tpm"         REAL,
     "junction_count"   INTEGER,
@@ -52,8 +52,8 @@ CREATE TABLE IF NOT EXISTS "sample_tesj" (
     PRIMARY KEY ("biospecimen_id", "junction")
 );
 
-CREATE TABLE IF NOT EXISTS "tesj_recurrence" (
-    "junction"       TEXT NOT NULL REFERENCES "tesj"("junction") ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS "tej_recurrence" (
+    "junction"       TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
     "plot_group"     TEXT NOT NULL,
     "sample_count"   INTEGER NOT NULL,
     "total_samples"  INTEGER NOT NULL,
@@ -61,8 +61,8 @@ CREATE TABLE IF NOT EXISTS "tesj_recurrence" (
     PRIMARY KEY ("junction", "plot_group")
 );
 
-CREATE INDEX ON tesj (gene_symbol);
-CREATE INDEX ON tesj (junction_preference);
-CREATE INDEX ON tesj_domain (junction);
-CREATE INDEX ON sample_tesj (junction);
-CREATE INDEX ON tesj_recurrence (plot_group);
+CREATE INDEX ON tej (gene_symbol);
+CREATE INDEX ON tej (junction_preference);
+CREATE INDEX ON tej_domain (junction);
+CREATE INDEX ON sample_tej (junction);
+CREATE INDEX ON tej_recurrence (plot_group);

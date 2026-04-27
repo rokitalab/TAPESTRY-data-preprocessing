@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-analyse_tesj_recurrence.py
+analyse_tej_recurrence.py
 
-Analyse tesj_recurrence percentages.
+Analyse tej_recurrence percentages.
 
 Run:
-  python -m pipelines.analyse_tesj_recurrence
+  python -m pipelines.analyse_tej_recurrence
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from db.connection import get_connection
 
 
 def main() -> None:
-    print("\n========== TESJ RECURRENCE ANALYSIS ==========\n")
+    print("\n========== TEJ RECURRENCE ANALYSIS ==========\n")
     with get_connection() as conn:
         with conn.cursor() as cur:
 
@@ -25,7 +25,7 @@ def main() -> None:
                     PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY pct) AS median,
                     MAX(pct)                     AS max,
                     COUNT(*)                     AS total_rows
-                FROM tesj_recurrence
+                FROM tej_recurrence
             """)
             row = cur.fetchone()
             print("Recurrence pct distribution (all plot_groups)")
@@ -46,7 +46,7 @@ def main() -> None:
                         ELSE '<5%'
                     END AS bucket,
                     COUNT(*) AS n
-                FROM tesj_recurrence
+                FROM tej_recurrence
                 GROUP BY 1
                 ORDER BY MIN(pct) DESC
             """)
@@ -57,8 +57,8 @@ def main() -> None:
             # --- top junctions by max pct across any plot_group ---
             cur.execute("""
                 SELECT r.junction, t.gene_symbol, r.plot_group, r.sample_count, r.total_samples, r.pct
-                FROM tesj_recurrence r
-                JOIN tesj t USING (junction)
+                FROM tej_recurrence r
+                JOIN tej t USING (junction)
                 ORDER BY r.pct DESC
                 LIMIT 20
             """)
@@ -70,8 +70,8 @@ def main() -> None:
             # --- junctions recurrent in the most plot_groups ---
             cur.execute("""
                 SELECT r.junction, t.gene_symbol, COUNT(*) AS n_plot_groups, ROUND(AVG(pct)::numeric, 2) AS avg_pct
-                FROM tesj_recurrence r
-                JOIN tesj t USING (junction)
+                FROM tej_recurrence r
+                JOIN tej t USING (junction)
                 GROUP BY r.junction, t.gene_symbol
                 ORDER BY n_plot_groups DESC, avg_pct DESC
                 LIMIT 20
@@ -89,7 +89,7 @@ def main() -> None:
                     ROUND(AVG(pct)::numeric, 2)                           AS avg_pct,
                     ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY pct)::numeric, 2) AS median_pct,
                     MAX(pct)                                               AS max_pct
-                FROM tesj_recurrence
+                FROM tej_recurrence
                 GROUP BY plot_group
                 ORDER BY n_junctions DESC
             """)
