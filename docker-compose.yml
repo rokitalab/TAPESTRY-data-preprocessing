@@ -23,7 +23,13 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-tapestry}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    command: bash -c "pip list && echo '---' && Rscript -e 'installed.packages()[,1]' && echo '---' && python3 -c \"import psycopg, os; conn = psycopg.connect(host=os.getenv('POSTGRES_HOST','localhost'), dbname=os.getenv('POSTGRES_DB','tapestry'), user=os.getenv('POSTGRES_USER','postgres'), password=os.getenv('POSTGRES_PASSWORD','postgres')); print(conn.execute('SELECT version()').fetchone()[0])\""
+    working_dir: /app
+    command: >
+      bash -c "
+        python -m db.migrate &&
+        python -m pipelines.01_histologies &&
+        python -m pipelines.status
+      "
     volumes:
       - .:/app
       - ./data:/app/data:ro
