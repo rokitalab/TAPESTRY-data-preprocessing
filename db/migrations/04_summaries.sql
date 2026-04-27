@@ -2,7 +2,8 @@
 -- Materialized views summarising TESJ results per gene and per histology.
 -- Refresh after pipelines run: REFRESH MATERIALIZED VIEW tesj_gene_summary, tesj_histology_summary;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS tesj_gene_summary AS
+DROP MATERIALIZED VIEW IF EXISTS tesj_gene_summary;
+CREATE MATERIALIZED VIEW tesj_gene_summary AS
 SELECT
     t.gene_symbol                      AS gene,
     COUNT(DISTINCT st.biospecimen_id)  AS num_samples,
@@ -23,13 +24,16 @@ SELECT
     COUNT(DISTINCT CASE WHEN t.preference_code = 'RI' THEN t.junction END)                 AS num_pref_ri
 FROM tesj t
 LEFT JOIN sample_tesj st             ON t.junction = st.junction
+LEFT JOIN sample s                   ON st.biospecimen_id = s.biospecimen_id
 LEFT JOIN tesj_recurrence tr         ON t.junction = tr.junction
 LEFT JOIN tesj_domain td             ON t.junction = td.junction
+WHERE s.cancer_group IS NOT NULL
 GROUP BY t.gene_symbol;
 
 CREATE INDEX ON tesj_gene_summary (gene);
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS tesj_histology_summary AS
+DROP MATERIALIZED VIEW IF EXISTS tesj_histology_summary;
+CREATE MATERIALIZED VIEW tesj_histology_summary AS
 SELECT
     s.plot_group,
     COUNT(DISTINCT s.biospecimen_id)                                                         AS num_samples,
@@ -50,6 +54,7 @@ SELECT
 FROM sample s
 LEFT JOIN sample_tesj st ON s.biospecimen_id = st.biospecimen_id
 LEFT JOIN tesj t         ON st.junction = t.junction
+WHERE s.cancer_group IS NOT NULL
 GROUP BY s.plot_group;
 
 CREATE INDEX ON tesj_histology_summary (plot_group);
