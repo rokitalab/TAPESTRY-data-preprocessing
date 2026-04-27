@@ -1,27 +1,27 @@
-# TESJ CPM Tables
+# TEJ CPM Tables
 
 Per-sample CPM values for tumor-enriched and oncofetal splice junctions. Built from two RDS matrices — one for tumor samples, one for controls.
 
-## DDL (from `db/migrations/03_tesj_cpm.sql`)
+## DDL (from `db/migrations/03_tej_cpm.sql`)
 
 ```sql
-CREATE TABLE IF NOT EXISTS "tesj_cpm" (
-    "junction"       TEXT NOT NULL REFERENCES "tesj"("junction") ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS "tej_cpm" (
+    "junction"       TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
     "biospecimen_id" TEXT NOT NULL REFERENCES "sample"("biospecimen_id") ON DELETE CASCADE,
     "cpm"            REAL,
     PRIMARY KEY ("junction", "biospecimen_id")
 );
 
-CREATE INDEX ON tesj_cpm (biospecimen_id);
+CREATE INDEX ON tej_cpm (biospecimen_id);
 ```
 
-## tesj_cpm columns
+## tej_cpm columns
 
 One row per `(junction, biospecimen_id)` pair.
 
 | Column | Type | Source | Notes |
 |---|---|---|---|
-| `junction` | TEXT FK | column header / row key | References `tesj.junction` |
+| `junction` | TEXT FK | column header / row key | References `tej.junction` |
 | `biospecimen_id` | TEXT FK | column header | References `sample.biospecimen_id` |
 | `cpm` | REAL | CPM matrix cell value | NULL where source value is R `NA`; `0.0` is a valid measurement |
 | `log2_cpm_corrected` | REAL | log2 CPM matrix cell value | Batch-corrected; tumor samples only — NULL for all controls |
@@ -29,13 +29,13 @@ One row per `(junction, biospecimen_id)` pair.
 ## Relationships
 
 ```
-tesj   (junction)       ←── tesj_cpm.junction
-sample (biospecimen_id) ←── tesj_cpm.biospecimen_id
+tej   (junction)       ←── tej_cpm.junction
+sample (biospecimen_id) ←── tej_cpm.biospecimen_id
 ```
 
 ## ETL
 
-Populated by `pipelines/03_tesj_cpm.py` from two source files:
+Populated by `pipelines/03_tej_cpm.py` from two source files:
 
 | File | Format | Samples | Notes |
 |---|---|---|---|
@@ -52,5 +52,5 @@ R `NA` values are coerced to `NULL`; they are not stored as IEEE NaN. A `cpm` of
 Scale: ~10,676 junctions × 2,217 samples ≈ 23.7M rows total.
 
 ```bash
-python -m pipelines.03_tesj_cpm
+python -m pipelines.03_tej_cpm
 ```
