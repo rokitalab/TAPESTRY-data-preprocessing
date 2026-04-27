@@ -1,11 +1,11 @@
-# TESJ Tables
+# tej Tables
 
 Tumor-enriched and oncofetal splice junction data. Built from the recurrent primary-tumor file (`recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated.tsv.gz`).
 
-## DDL (from `db/migrations/02_tesj.sql`)
+## DDL (from `db/migrations/02_tej.sql`)
 
 ```sql
-CREATE TABLE IF NOT EXISTS "tesj" (
+CREATE TABLE IF NOT EXISTS "tej" (
     "junction"               TEXT PRIMARY KEY,
     "chr"                    TEXT,
     "strand"                 TEXT CHECK ("strand" IN ('+', '-')),
@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS "tesj" (
     "max_mean_cpm_postnatal" REAL
 );
 
-CREATE TABLE IF NOT EXISTS "tesj_domain" (
+CREATE TABLE IF NOT EXISTS "tej_domain" (
     "id"                SERIAL PRIMARY KEY,
-    "junction"          TEXT NOT NULL REFERENCES "tesj"("junction") ON DELETE CASCADE,
+    "junction"          TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
     "domain_source"     TEXT NOT NULL,
     "domain_type"       TEXT,
     "domain_name"       TEXT,
@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS "tesj_domain" (
     "overlaps_domain"   BOOLEAN
 );
 
-CREATE TABLE IF NOT EXISTS "sample_tesj" (
+CREATE TABLE IF NOT EXISTS "sample_tej" (
     "biospecimen_id"    TEXT NOT NULL REFERENCES "sample"("biospecimen_id") ON DELETE CASCADE,
-    "junction"          TEXT NOT NULL REFERENCES "tesj"("junction") ON DELETE CASCADE,
+    "junction"          TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
     "junction_cpm"      REAL,
     "gene_tpm"          REAL,
     "junction_count"    INTEGER,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS "sample_tesj" (
 );
 ```
 
-## tesj columns
+## tej columns
 
 | Column | Type | Source | Notes |
 |---|---|---|---|
@@ -85,14 +85,14 @@ CREATE TABLE IF NOT EXISTS "sample_tesj" (
 | `max_mean_cpm_all` | REAL | `max_mean_cpm_all` | |
 | `max_mean_cpm_postnatal` | REAL | `max_mean_cpm_postnatal` | |
 
-## tesj_domain columns
+## tej_domain columns
 
 One row per domain annotation. ~42% of junctions have at least one domain; a junction may have both a pfam and a uniprot entry (two rows).
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | SERIAL PK | |
-| `junction` | TEXT FK | References `tesj.junction` |
+| `junction` | TEXT FK | References `tej.junction` |
 | `domain_source` | TEXT | `pfam` or `uniprot` |
 | `domain_type` | TEXT | `pfam_id` or `uniprot_domain_type` |
 | `domain_name` | TEXT | `pfam_name`; NULL for uniprot rows |
@@ -102,26 +102,26 @@ One row per domain annotation. ~42% of junctions have at least one domain; a jun
 | `overlap_type` | TEXT | `pfam_domain_overlap_type`; NULL for uniprot rows |
 | `overlaps_domain` | BOOLEAN | `junction_overlaps_pfam_domain`; NULL for uniprot rows |
 
-## sample_tesj columns
+## sample_tej columns
 
 One row per `(biospecimen_id, junction)` pair.
 
 | Column | Type | Source | Notes |
 |---|---|---|---|
 | `biospecimen_id` | TEXT FK | `Kids_First_Biospecimen_ID` | References `sample.biospecimen_id` |
-| `junction` | TEXT FK | `junction` | References `tesj.junction` |
+| `junction` | TEXT FK | `junction` | References `tej.junction` |
 | `junction_cpm` | REAL | `junction_cpm` | |
 | `gene_tpm` | REAL | `gene_tpm` | |
 | `junction_count` | INTEGER | `junction_count` | |
 | `event_type_sample` | TEXT | `event_type_sample` | |
 
-## tesj_recurrence columns
+## tej_recurrence columns
 
 One row per `(junction, plot_group)` pair. Denominator is the count of independent-primary RNA-seq specimens per `plot_group` from the `sample` table (`is_independent_primary = TRUE AND rna_library IS NOT NULL AND plot_group IS NOT NULL`).
 
 | Column | Type | Notes |
 |---|---|---|
-| `junction` | TEXT FK | References `tesj.junction` |
+| `junction` | TEXT FK | References `tej.junction` |
 | `plot_group` | TEXT | |
 | `sample_count` | INTEGER | Unique samples in the recurrent file with this junction in this plot_group |
 | `total_samples` | INTEGER | Total RNA-seq samples in this plot_group from `sample` table |
@@ -130,20 +130,20 @@ One row per `(junction, plot_group)` pair. Denominator is the count of independe
 ## Relationships
 
 ```
-tesj        (junction)       ←── tesj_domain.junction
-tesj        (junction)       ←── sample_tesj.junction
-tesj        (junction)       ←── tesj_recurrence.junction
-sample      (biospecimen_id) ←── sample_tesj.biospecimen_id
+tej        (junction)       ←── tej_domain.junction
+tej        (junction)       ←── sample_tej.junction
+tej        (junction)       ←── tej_recurrence.junction
+sample      (biospecimen_id) ←── sample_tej.biospecimen_id
 ```
 
 ## ETL
 
-Populated by `pipelines/02_tesj.py`. Insert order: `tesj → tesj_domain → sample_tesj → tesj_recurrence`.
+Populated by `pipelines/02_tej.py`. Insert order: `tej → tej_domain → sample_tej → tej_recurrence`.
 
 The recurrent file is read in a single pass. Junctions are deduplicated in memory before insertion.
 
 `"NA"` strings and blanks are coerced to `NULL` by the ETL.
 
 ```bash
-python -m pipelines.02_tesj
+python -m pipelines.02_tej
 ```

@@ -77,51 +77,51 @@ def main() -> None:
             print(f"  cancer_group=NULL:  {row[1]}")
             print(f"  rna_library=NULL:   {row[2]}")
 
-            # --- TESJ row counts ---
+            # --- TEJ row counts ---
             cur.execute("""
                 SELECT
-                    (SELECT COUNT(*) FROM tesj)            AS tesj,
-                    (SELECT COUNT(*) FROM tesj_domain)     AS tesj_domain,
-                    (SELECT COUNT(*) FROM sample_tesj)     AS sample_tesj,
-                    (SELECT COUNT(*) FROM tesj_recurrence) AS tesj_recurrence,
-                    (SELECT COUNT(*) FROM tesj_cpm)        AS tesj_cpm
+                    (SELECT COUNT(*) FROM tej)            AS tej,
+                    (SELECT COUNT(*) FROM tej_domain)     AS tej_domain,
+                    (SELECT COUNT(*) FROM sample_tej)     AS sample_tej,
+                    (SELECT COUNT(*) FROM tej_recurrence) AS tej_recurrence,
+                    (SELECT COUNT(*) FROM tej_cpm)        AS tej_cpm
             """)
             counts = cur.fetchone()
-            print("\nTESJ row counts")
-            print(f"  tesj:             {counts[0]}")
-            print(f"  tesj_domain:      {counts[1]}")
-            print(f"  sample_tesj:      {counts[2]}")
-            print(f"  tesj_recurrence:  {counts[3]}")
-            print(f"  tesj_cpm:         {counts[4]}")
+            print("\nTEJ row counts")
+            print(f"  tej:             {counts[0]}")
+            print(f"  tej_domain:      {counts[1]}")
+            print(f"  sample_tej:      {counts[2]}")
+            print(f"  tej_recurrence:  {counts[3]}")
+            print(f"  tej_cpm:         {counts[4]}")
 
-            # --- tesj_cpm: coverage ---
+            # --- tej_cpm: coverage ---
             cur.execute("""
                 SELECT
                     COUNT(DISTINCT junction)     AS junctions,
                     COUNT(DISTINCT biospecimen_id) AS samples
-                FROM tesj_cpm
+                FROM tej_cpm
             """)
             row = cur.fetchone()
-            print("\ntesj_cpm coverage")
+            print("\ntej_cpm coverage")
             print(f"  unique junctions: {row[0]:,}")
             print(f"  unique samples:   {row[1]:,}")
 
-            # --- tesj_cpm: tumor vs control ---
+            # --- tej_cpm: tumor vs control ---
             cur.execute("""
                 SELECT
                     CASE WHEN s.cancer_group IS NOT NULL THEN 'tumor' ELSE 'control' END AS type,
                     COUNT(DISTINCT tc.biospecimen_id) AS samples,
                     COUNT(*) AS rows
-                FROM tesj_cpm tc
+                FROM tej_cpm tc
                 JOIN sample s USING (biospecimen_id)
                 GROUP BY 1
                 ORDER BY 1
             """)
-            print("\ntesj_cpm by sample type")
+            print("\ntej_cpm by sample type")
             for row in cur.fetchall():
                 print(f"  {row[0]}: {row[1]:,} samples, {row[2]:,} rows")
 
-            # --- tesj_cpm: CPM distribution ---
+            # --- tej_cpm: CPM distribution ---
             cur.execute("""
                 SELECT
                     MIN(cpm)                                                    AS min,
@@ -129,44 +129,44 @@ def main() -> None:
                     PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY cpm)           AS median,
                     MAX(cpm)                                                    AS max,
                     ROUND(100.0 * COUNT(*) FILTER (WHERE cpm = 0) / COUNT(*), 1) AS pct_zero
-                FROM tesj_cpm
+                FROM tej_cpm
             """)
             row = cur.fetchone()
-            print("\ntesj_cpm CPM distribution")
+            print("\ntej_cpm CPM distribution")
             print(f"  min:      {row[0]}")
             print(f"  mean:     {row[1]}")
             print(f"  median:   {row[2]}")
             print(f"  max:      {row[3]}")
             print(f"  zero rows: {row[4]}%")
 
-            # --- tesj_cpm: samples present in sample table but absent from tesj_cpm ---
+            # --- tej_cpm: samples present in sample table but absent from tej_cpm ---
             cur.execute("""
                 SELECT COUNT(*) FROM sample
                 WHERE rna_library IS NOT NULL
-                  AND biospecimen_id NOT IN (SELECT DISTINCT biospecimen_id FROM tesj_cpm)
+                  AND biospecimen_id NOT IN (SELECT DISTINCT biospecimen_id FROM tej_cpm)
             """)
             missing = cur.fetchone()[0]
-            print(f"\ntesj_cpm missing RNA samples: {missing}")
+            print(f"\ntej_cpm missing RNA samples: {missing}")
 
-            # --- TESJ: by junction_preference ---
+            # --- TEJ: by junction_preference ---
             cur.execute("""
                 SELECT junction_preference, COUNT(*) AS n
-                FROM tesj
+                FROM tej
                 GROUP BY junction_preference
                 ORDER BY n DESC
             """)
-            print("\nTESJ by junction_preference")
+            print("\nTEJ by junction_preference")
             for row in cur.fetchall():
                 print(f"  {row[0]}: {row[1]}")
 
-            # --- TESJ: by consensus_specificity ---
+            # --- TEJ: by consensus_specificity ---
             cur.execute("""
                 SELECT consensus_specificity, COUNT(*) AS n
-                FROM tesj
+                FROM tej
                 GROUP BY consensus_specificity
                 ORDER BY n DESC
             """)
-            print("\nTESJ by consensus_specificity")
+            print("\nTEJ by consensus_specificity")
             for row in cur.fetchall():
                 print(f"  {row[0]}: {row[1]}")
 
