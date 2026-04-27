@@ -28,8 +28,8 @@ services:
       bash -c "
         python -m db.migrate &&
         python -m pipelines.01_histologies &&
-        python -m pipelines.02_tesj &&
-        python -m pipelines.03_tesj_cpm &&
+        python -m pipelines.02_tej &&
+        python -m pipelines.03_tej_cpm &&
         python -m pipelines.status &&
         python -m pipelines.refresh_views
       "

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-02_tesj.py
+02_tej.py
 
-ETL for recurrent primary-tumor TESJ annotation file → tesj, tesj_domain, sample_tesj tables.
+ETL for recurrent primary-tumor TEJ annotation file → tej, tej_domain, sample_tej tables.
 
 Run:
-  python -m pipelines.02_tesj
+  python -m pipelines.02_tej
 
 Environment (read by db package):
   POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
@@ -156,7 +156,7 @@ def load(conn) -> None:
     with conn.cursor() as cur:
         cur.executemany(
             """
-            INSERT INTO tesj (
+            INSERT INTO tej (
                 junction, chr, strand, gene_symbol, boundary,
                 up_jc_start, up_jc_end, down_jc_start, down_jc_end,
                 in_cds, consequence, consensus_jc_event_type,
@@ -183,7 +183,7 @@ def load(conn) -> None:
         domain_rows = [d for domains in seen_domains.values() for d in domains]
         cur.executemany(
             """
-            INSERT INTO tesj_domain (
+            INSERT INTO tej_domain (
                 junction, domain_source, domain_type, domain_name, domain_description,
                 domain_start, domain_end, overlap_type, overlaps_domain
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -193,7 +193,7 @@ def load(conn) -> None:
 
         cur.executemany(
             """
-            INSERT INTO sample_tesj (
+            INSERT INTO sample_tej (
                 biospecimen_id, junction, junction_cpm, gene_tpm,
                 junction_count, event_type_sample
             ) VALUES (%s, %s, %s, %s, %s, %s)
@@ -226,7 +226,7 @@ def load(conn) -> None:
 
         cur.executemany(
             """
-            INSERT INTO tesj_recurrence (
+            INSERT INTO tej_recurrence (
                 junction, plot_group, sample_count, total_samples, pct
             ) VALUES (%s, %s, %s, %s, %s)
             ON CONFLICT (junction, plot_group) DO NOTHING
@@ -235,7 +235,7 @@ def load(conn) -> None:
         )
 
     conn.commit()
-    print("02_tesj done.")
+    print("02_tej done.")
 
 
 def main() -> None:

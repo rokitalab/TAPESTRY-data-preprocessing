@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-03_tesj_cpm.py
+03_tej_cpm.py
 
-ETL for TESJ CPM matrices → tesj_cpm table.
+ETL for TEJ CPM matrices → tej_cpm table.
 Loads both tumor and control RDS files and unpivots junction × sample → rows.
 Log2 batch-corrected CPM (tumor only) is merged in before insertion.
 
 Run:
-  python -m pipelines.03_tesj_cpm
+  python -m pipelines.03_tej_cpm
 
 Environment (read by db package):
   POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
@@ -50,7 +50,7 @@ def _read_qs2(path: Path) -> pd.DataFrame:
 def _insert(cur, rows: list[tuple]) -> None:
     cur.executemany(
         """
-        INSERT INTO tesj_cpm (junction, biospecimen_id, cpm, log2_cpm_corrected)
+        INSERT INTO tej_cpm (junction, biospecimen_id, cpm, log2_cpm_corrected)
         VALUES (%s, %s, %s, %s)
         ON CONFLICT (junction, biospecimen_id) DO NOTHING
         """,
@@ -119,7 +119,7 @@ def main() -> None:
         load_tumor(conn)
         load_controls(conn)
 
-    print("03_tesj_cpm done.")
+    print("03_tej_cpm done.")
 
 
 if __name__ == "__main__":
