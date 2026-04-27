@@ -1,9 +1,9 @@
 -- 04_summaries.sql
--- Materialized views summarising TESJ results per gene and per histology.
--- Refresh after pipelines run: REFRESH MATERIALIZED VIEW tesj_gene_summary, tesj_histology_summary;
+-- Materialized views summarising TEJ results per gene and per histology.
+-- Refresh after pipelines run: REFRESH MATERIALIZED VIEW tej_gene_summary, tej_histology_summary;
 
-DROP MATERIALIZED VIEW IF EXISTS tesj_gene_summary;
-CREATE MATERIALIZED VIEW tesj_gene_summary AS
+DROP MATERIALIZED VIEW IF EXISTS tej_gene_summary;
+CREATE MATERIALIZED VIEW tej_gene_summary AS
 SELECT
     t.gene_symbol                      AS gene,
     COUNT(DISTINCT st.biospecimen_id)  AS num_samples,
@@ -22,18 +22,18 @@ SELECT
     COUNT(DISTINCT CASE WHEN t.preference_code = 'EI' THEN t.junction END)                 AS num_pref_ei,
     COUNT(DISTINCT CASE WHEN t.preference_code = 'ES' THEN t.junction END)                 AS num_pref_es,
     COUNT(DISTINCT CASE WHEN t.preference_code = 'RI' THEN t.junction END)                 AS num_pref_ri
-FROM tesj t
-LEFT JOIN sample_tesj st             ON t.junction = st.junction
+FROM tej t
+LEFT JOIN sample_tej st             ON t.junction = st.junction
 LEFT JOIN sample s                   ON st.biospecimen_id = s.biospecimen_id
-LEFT JOIN tesj_recurrence tr         ON t.junction = tr.junction
-LEFT JOIN tesj_domain td             ON t.junction = td.junction
+LEFT JOIN tej_recurrence tr         ON t.junction = tr.junction
+LEFT JOIN tej_domain td             ON t.junction = td.junction
 WHERE s.cancer_group IS NOT NULL
 GROUP BY t.gene_symbol;
 
-CREATE INDEX ON tesj_gene_summary (gene);
+CREATE INDEX ON tej_gene_summary (gene);
 
-DROP MATERIALIZED VIEW IF EXISTS tesj_histology_summary;
-CREATE MATERIALIZED VIEW tesj_histology_summary AS
+DROP MATERIALIZED VIEW IF EXISTS tej_histology_summary;
+CREATE MATERIALIZED VIEW tej_histology_summary AS
 SELECT
     s.plot_group,
     COUNT(DISTINCT s.biospecimen_id)                                                         AS num_samples,
@@ -52,9 +52,9 @@ SELECT
     COUNT(DISTINCT CASE WHEN t.preference_code = 'ES' THEN st.junction END)                AS num_pref_es,
     COUNT(DISTINCT CASE WHEN t.preference_code = 'RI' THEN st.junction END)                AS num_pref_ri
 FROM sample s
-LEFT JOIN sample_tesj st ON s.biospecimen_id = st.biospecimen_id
-LEFT JOIN tesj t         ON st.junction = t.junction
+LEFT JOIN sample_tej st ON s.biospecimen_id = st.biospecimen_id
+LEFT JOIN tej t         ON st.junction = t.junction
 WHERE s.cancer_group IS NOT NULL
 GROUP BY s.plot_group;
 
-CREATE INDEX ON tesj_histology_summary (plot_group);
+CREATE INDEX ON tej_histology_summary (plot_group);

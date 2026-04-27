@@ -4,23 +4,23 @@ Precomputed materialized views for the API summary pages. Defined in `db/migrati
 
 To refresh manually:
 ```sql
-REFRESH MATERIALIZED VIEW tesj_gene_summary;
-REFRESH MATERIALIZED VIEW tesj_histology_summary;
+REFRESH MATERIALIZED VIEW tej_gene_summary;
+REFRESH MATERIALIZED VIEW tej_histology_summary;
 ```
 
 ---
 
-## tesj_gene_summary
+## tej_gene_summary
 
-One row per gene. Aggregates TESJ junction counts across `tesj`, `sample_tesj`, `tesj_recurrence`, and `tesj_domain`.
+One row per gene. Aggregates TEJ junction counts across `tej`, `sample_tej`, `tej_recurrence`, and `tej_domain`.
 
 | Column | Type | Notes |
 |---|---|---|
-| `gene` | TEXT | `tesj.gene_symbol` |
+| `gene` | TEXT | `tej.gene_symbol` |
 | `num_samples` | BIGINT | Distinct biospecimen IDs with at least one junction for this gene |
 | `num_junctions` | BIGINT | Distinct junctions |
-| `num_plot_groups` | BIGINT | Distinct plot groups in `tesj_recurrence` |
-| `num_domains_affected` | BIGINT | Distinct domain names in `tesj_domain` |
+| `num_plot_groups` | BIGINT | Distinct plot groups in `tej_recurrence` |
+| `num_domains_affected` | BIGINT | Distinct domain names in `tej_domain` |
 | `num_oncofetal` | BIGINT | Junctions where `consensus_specificity = 'Oncofetal'` |
 | `num_tumor_specific` | BIGINT | Junctions where `consensus_specificity = 'Tumor-specific'` |
 | `num_annotated_junction` | BIGINT | Junctions where `status = 'Annotated junction'` |
@@ -37,17 +37,17 @@ One row per gene. Aggregates TESJ junction counts across `tesj`, `sample_tesj`, 
 ### Relationships
 
 ```
-tesj        (junction)       → tesj_gene_summary
-sample_tesj (biospecimen_id) → tesj_gene_summary.num_samples
-tesj_recurrence (plot_group) → tesj_gene_summary.num_plot_groups
-tesj_domain (domain_name)    → tesj_gene_summary.num_domains_affected
+tej        (junction)       → tej_gene_summary
+sample_tej (biospecimen_id) → tej_gene_summary.num_samples
+tej_recurrence (plot_group) → tej_gene_summary.num_plot_groups
+tej_domain (domain_name)    → tej_gene_summary.num_domains_affected
 ```
 
 ---
 
-## tesj_histology_summary
+## tej_histology_summary
 
-One row per histology (`plot_group`). Aggregates TESJ junction counts across `sample`, `sample_tesj`, and `tesj`.
+One row per histology (`plot_group`). Aggregates TEJ junction counts across `sample`, `sample_tej`, and `tej`.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -71,7 +71,7 @@ One row per histology (`plot_group`). Aggregates TESJ junction counts across `sa
 ### Relationships
 
 ```
-sample      (plot_group)     → tesj_histology_summary
-sample_tesj (junction)       → tesj_histology_summary.num_junctions
-tesj        (gene_symbol)    → tesj_histology_summary.num_genes
+sample      (plot_group)     → tej_histology_summary
+sample_tej (junction)       → tej_histology_summary.num_junctions
+tej        (gene_symbol)    → tej_histology_summary.num_genes
 ```
