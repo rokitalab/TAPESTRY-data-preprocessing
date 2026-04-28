@@ -53,6 +53,13 @@ def _rna_library(val: str | None) -> str | None:
     return _RNA_LIBRARY_MAP.get(v, v)
 
 
+def _bool(val: str | None) -> bool | None:
+    v = _str(val)
+    if v is None:
+        return None
+    return v.lower() in {"yes", "true", "1"}
+
+
 def _int(val: str | None) -> int | None:
     v = _str(val)
     if v is None:
@@ -126,8 +133,8 @@ def load_tumor(rows: list[dict[str, str]], conn) -> None:
                 biospecimen_id, patient_id, cancer_group, molecular_subtype,
                 match_id, resection, primary_site, cns_region,
                 plot_group, cohort, sub_cohort, rna_library,
-                composition, tumor_descriptor
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                composition, tumor_descriptor, is_independent_primary
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (biospecimen_id) DO NOTHING
             """,
             [
@@ -146,6 +153,7 @@ def load_tumor(rows: list[dict[str, str]], conn) -> None:
                     _rna_library(row.get("RNA_library")),
                     _str(row.get("composition")),
                     _str(row.get("tumor_descriptor")),
+                    _bool(row.get("is_independent_primary")),
                 )
                 for row in rows
             ],
@@ -236,7 +244,7 @@ def main() -> None:
     print(f"Read {len(control_rows)} control rows")
 
     load(rows, control_rows)
-    print("Done.")
+    print("01_histologies done.")
 
 
 if __name__ == "__main__":

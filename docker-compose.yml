@@ -28,7 +28,9 @@ services:
       bash -c "
         python -m db.migrate &&
         python -m pipelines.01_histologies &&
-        python -m pipelines.status
+        python -m pipelines.02_tej &&
+        python -m pipelines.status &&
+        python -m pipelines.analyse_tej_recurrence
       "
     volumes:
       - .:/app

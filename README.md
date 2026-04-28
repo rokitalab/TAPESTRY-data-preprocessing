@@ -19,7 +19,7 @@ bash download_data.sh
 
 ### Run with local PostgreSQL
 
-Starts a local PostgreSQL instance, applies migrations, loads the histologies pipeline, and prints a status summary:
+Starts a local PostgreSQL instance, applies migrations, loads the histologies and TESJ pipelines, and prints a status summary:
 
 ```bash
 docker compose up pipeline
