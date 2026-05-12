@@ -83,7 +83,8 @@ def main() -> None:
                     (SELECT COUNT(*) FROM tej)            AS tej,
                     (SELECT COUNT(*) FROM tej_domain)     AS tej_domain,
                     (SELECT COUNT(*) FROM sample_tej)     AS sample_tej,
-                    (SELECT COUNT(*) FROM tej_recurrence) AS tej_recurrence
+                    (SELECT COUNT(*) FROM tej_recurrence) AS tej_recurrence,
+                    (SELECT COUNT(*) FROM tej_cpm)        AS tej_cpm
             """)
             counts = cur.fetchone()
             print("\nTEJ row counts")
@@ -91,6 +92,61 @@ def main() -> None:
             print(f"  tej_domain:      {counts[1]}")
             print(f"  sample_tej:      {counts[2]}")
             print(f"  tej_recurrence:  {counts[3]}")
+            print(f"  tej_cpm:         {counts[4]}")
+
+            # --- tej_cpm: coverage ---
+            cur.execute("""
+                SELECT
+                    COUNT(DISTINCT junction)     AS junctions,
+                    COUNT(DISTINCT biospecimen_id) AS samples
+                FROM tej_cpm
+            """)
+            row = cur.fetchone()
+            print("\ntej_cpm coverage")
+            print(f"  unique junctions: {row[0]:,}")
+            print(f"  unique samples:   {row[1]:,}")
+
+            # --- tej_cpm: tumor vs control ---
+            cur.execute("""
+                SELECT
+                    CASE WHEN s.cancer_group IS NOT NULL THEN 'tumor' ELSE 'control' END AS type,
+                    COUNT(DISTINCT tc.biospecimen_id) AS samples,
+                    COUNT(*) AS rows
+                FROM tej_cpm tc
+                JOIN sample s USING (biospecimen_id)
+                GROUP BY 1
+                ORDER BY 1
+            """)
+            print("\ntej_cpm by sample type")
+            for row in cur.fetchall():
+                print(f"  {row[0]}: {row[1]:,} samples, {row[2]:,} rows")
+
+            # --- tej_cpm: CPM distribution ---
+            cur.execute("""
+                SELECT
+                    MIN(cpm)                                                    AS min,
+                    ROUND(AVG(cpm)::numeric, 4)                                AS mean,
+                    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY cpm)           AS median,
+                    MAX(cpm)                                                    AS max,
+                    ROUND(100.0 * COUNT(*) FILTER (WHERE cpm = 0) / COUNT(*), 1) AS pct_zero
+                FROM tej_cpm
+            """)
+            row = cur.fetchone()
+            print("\ntej_cpm CPM distribution")
+            print(f"  min:      {row[0]}")
+            print(f"  mean:     {row[1]}")
+            print(f"  median:   {row[2]}")
+            print(f"  max:      {row[3]}")
+            print(f"  zero rows: {row[4]}%")
+
+            # --- tej_cpm: samples present in sample table but absent from tej_cpm ---
+            cur.execute("""
+                SELECT COUNT(*) FROM sample
+                WHERE rna_library IS NOT NULL
+                  AND biospecimen_id NOT IN (SELECT DISTINCT biospecimen_id FROM tej_cpm)
+            """)
+            missing = cur.fetchone()[0]
+            print(f"\ntej_cpm missing RNA samples: {missing}")
 
             # --- TEJ: by junction_preference ---
             cur.execute("""

@@ -7,6 +7,7 @@ Naming convention: 2-digit prefix, ordered:
 | File | Description |
 |------|-------------|
 | `01_histologies.sql` | Creates `patient` and `sample` tables with indexes |
-| `02_tej.sql` | Creates `tej`, `tej_domain`, and `sample_tej` tables with indexes |
+| `02_tej.sql` | Creates `tej`, `tej_domain`, `sample_tej`, and `tej_recurrence` tables with indexes |
+| `03_tej_cpm.sql` | Creates `tej_cpm` table (junction × sample CPM values) with indexes |
 
 Each file should be idempotent where possible (`CREATE TABLE IF NOT EXISTS`, etc.).
