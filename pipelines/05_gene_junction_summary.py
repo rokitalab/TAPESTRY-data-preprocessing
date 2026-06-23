@@ -29,13 +29,15 @@ from pathlib import Path
 
 from db.connection import get_connection
 
-INPUT_FILE = Path("data/v3/gene_junction_summary.tsv")
+import gzip
+
+INPUT_FILE = Path("data/v3/gene_junction_summary.tsv.gz")
 
 _BATCH = 50_000
 
 
 def read_rows(path: Path):
-    with path.open() as f:
+    with gzip.open(path, "rt") as f:
         next(f)  # header
         for line in f:
             gene, chrom, istart, iend, strand, annotated, group, num_samples_detected, median_cpm, mean_cpm, total_reads = (
@@ -105,7 +107,7 @@ def _insert(cur, batch: list[tuple]) -> None:
             gene_symbol, chr, intron_start, intron_end, strand, annotated,
             plot_group_id, num_samples_detected, median_cpm, mean_cpm, total_reads
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (gene_symbol, chr, intron_start, intron_end, strand, plot_group_id)
+        ON CONFLICT (gene_symbol, chr, intron_start, intron_end, plot_group_id)
         DO UPDATE SET annotated = EXCLUDED.annotated,
                       num_samples_detected = EXCLUDED.num_samples_detected,
                       median_cpm = EXCLUDED.median_cpm,

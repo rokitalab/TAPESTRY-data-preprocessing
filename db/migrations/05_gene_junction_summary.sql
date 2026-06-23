@@ -19,14 +19,14 @@ CREATE TABLE IF NOT EXISTS "gene_junction_summary" (
     "chr"                  TEXT NOT NULL,
     "intron_start"         INTEGER NOT NULL,
     "intron_end"           INTEGER NOT NULL,
-    "strand"               TEXT CHECK ("strand" IN ('+', '-')),
+    "strand"               TEXT CHECK (strand IN ('+', '-') OR strand IS NULL),
     "annotated"            BOOLEAN NOT NULL,
     "plot_group_id"        SMALLINT NOT NULL REFERENCES "plot_group" ("id"),
     "num_samples_detected" INTEGER NOT NULL,
     "median_cpm"           REAL NOT NULL,
     "mean_cpm"             REAL NOT NULL,
     "total_reads"          INTEGER NOT NULL,
-    PRIMARY KEY ("gene_symbol", "chr", "intron_start", "intron_end", "strand", "plot_group_id")
+    PRIMARY KEY ("gene_symbol", "chr", "intron_start", "intron_end", "plot_group_id")
 );
 
 CREATE INDEX ON gene_junction_summary (gene_symbol);

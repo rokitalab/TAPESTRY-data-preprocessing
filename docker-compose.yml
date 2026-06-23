@@ -1,28 +1,9 @@
 services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-tapestry}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-tapestry}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   pipeline:
     image: pgc-images.sbgenomics.com/rokita-lab/tapestry:latest
     platform: linux/amd64
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_DB: ${POSTGRES_DB:-tapestry}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      - .env
     working_dir: /app
     command: >
       bash -c "
@@ -30,15 +11,10 @@ services:
         python -m pipelines.01_histologies &&
         python -m pipelines.02_tej &&
         python -m pipelines.03_tej_cpm &&
+        python -m pipelines.05_gene_junction_summary.py &&
         python -m pipelines.status &&
         python -m pipelines.refresh_views
       "
     volumes:
       - .:/app
       - ./data:/app/data:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-volumes:
-  postgres_data:
