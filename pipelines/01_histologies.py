@@ -141,7 +141,7 @@ def load_tumor(rows: list[dict[str, str]], conn) -> None:
                 (
                     _str(row["Kids_First_Biospecimen_ID"]),
                     _str(row["Kids_First_Participant_ID"]),
-                    _str(row["sample_id"])
+                    _str(row["sample_id"]),
                     _str(row.get("cancer_group")),
                     _str(row.get("molecular_subtype")),
                     _str(row.get("match_id")),
