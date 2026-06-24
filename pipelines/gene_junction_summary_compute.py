@@ -100,12 +100,16 @@ def _open_sj():
     return proc, proc.stdout
 
 
-GeneIndex = dict[str, tuple[list[int], list[tuple[int, int, str]], list[int]]]
+GeneIndex = dict[str, tuple[list[int], list[tuple[int, int, str, str]], list[int]]]
 
 
 def _load_gene_intervals() -> GeneIndex:
-    """chr -> (starts, [(start, end, gene_symbol)] sorted by start, running max-end prefix)."""
-    by_chrom: dict[str, list[tuple[int, int, str]]] = defaultdict(list)
+    """chr -> (starts, [(start, end, gene_symbol, gene_strand)] sorted by
+    start, running max-end prefix). gene_strand is carried through so
+    _genes_at can reject genes on the opposite strand from the junction's
+    own STAR strand call -- without it, an antisense gene that merely
+    overlaps a junction positionally gets the junction's reads too."""
+    by_chrom: dict[str, list[tuple[int, int, str, str]]] = defaultdict(list)
     with gzip.open(GTF_FILE, "rt") as f:
         for line in f:
             if line.startswith("#"):
@@ -113,7 +117,7 @@ def _load_gene_intervals() -> GeneIndex:
             fields = line.rstrip("\n").split("\t")
             if fields[2] != "gene":
                 continue
-            chrom, start, end, attrs = fields[0], int(fields[3]), int(fields[4]), fields[8]
+            chrom, start, end, gene_strand, attrs = fields[0], int(fields[3]), int(fields[4]), fields[6], fields[8]
             gene_name = None
             for part in attrs.split(";"):
                 part = part.strip()
@@ -121,22 +125,25 @@ def _load_gene_intervals() -> GeneIndex:
                     gene_name = part.split('"')[1]
                     break
             if gene_name:
-                by_chrom[chrom].append((start, end, gene_name))
+                by_chrom[chrom].append((start, end, gene_name, gene_strand))
 
     index: GeneIndex = {}
     for chrom, ivs in by_chrom.items():
         ivs.sort()
-        starts = [s for s, _, _ in ivs]
+        starts = [s for s, _, _, _ in ivs]
         max_end_prefix = []
         running_max = -1
-        for _, end, _ in ivs:
+        for _, end, _, _ in ivs:
             running_max = max(running_max, end)
             max_end_prefix.append(running_max)
         index[chrom] = (starts, ivs, max_end_prefix)
     return index
 
 
-def _genes_at(index: GeneIndex, chrom: str, pos: int) -> set[str]:
+def _genes_at(index: GeneIndex, chrom: str, pos: int, strand: str | None) -> set[str]:
+    """strand is the junction's own STAR-called strand ('+'/'-'), or None
+    when STAR left it undefined (code 0) -- in that case there's nothing to
+    contradict a gene's strand, so every overlapping gene still matches."""
     entry = index.get(chrom)
     if not entry:
         return set()
@@ -146,8 +153,8 @@ def _genes_at(index: GeneIndex, chrom: str, pos: int) -> set[str]:
     while j >= 0:
         if max_end_prefix[j] < pos:
             break
-        start, end, name = ivs[j]
-        if end >= pos:
+        start, end, name, gene_strand = ivs[j]
+        if end >= pos and (strand is None or gene_strand == strand):
             genes.add(name)
         if start < pos - _MAX_GENE_SPAN:
             break
@@ -155,8 +162,8 @@ def _genes_at(index: GeneIndex, chrom: str, pos: int) -> set[str]:
     return genes
 
 
-def _genes_for_junction(index: GeneIndex, chrom: str, istart: int, iend: int) -> set[str]:
-    return _genes_at(index, chrom, istart) | _genes_at(index, chrom, iend)
+def _genes_for_junction(index: GeneIndex, chrom: str, istart: int, iend: int, strand: str | None) -> set[str]:
+    return _genes_at(index, chrom, istart, strand) | _genes_at(index, chrom, iend, strand)
 
 
 def _collapse_control_group(plot_group: str) -> str:
@@ -189,7 +196,7 @@ def _load_sample_groups() -> dict[str, tuple[str, ...]]:
             ip = _str(row.get("is_independent_primary"))
             if ip is not None and ip.lower() not in {"yes", "true", "1"}:
                 continue
-            biospecimen_id = _str(row["Kids_First_Biospecimen_ID"])
+            biospecimen_id = _str(row["sample_id"])
             groups = {_collapse_control_group(plot_group)}
             if _str(row.get("cohort")) == "Evo-devo":
                 groups.add(plot_group)
@@ -256,10 +263,10 @@ def compute_summary(
             continue
         chrom = parts[1].decode()
         istart, iend = int(parts[2]), int(parts[3])
-        genes = _genes_for_junction(gene_index, chrom, istart, iend)
+        strand = _STRAND_CODES.get(parts[4])
+        genes = _genes_for_junction(gene_index, chrom, istart, iend, strand)
         if not genes:
             continue
-        strand = _STRAND_CODES.get(parts[4])
         is_annotated = parts[6] == b"1"
         reads = int(parts[7])
         cpm = reads / lib_size * 1_000_000
