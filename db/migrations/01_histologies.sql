@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS "sample" (
     "is_independent_primary" BOOLEAN
 );
 
-CREATE INDEX ON sample (patient_id);
-CREATE INDEX ON sample (cohort);
-CREATE INDEX ON sample (cancer_group);
-CREATE INDEX ON sample (rna_library);
+CREATE INDEX IF NOT EXISTS sample_patient_id_idx ON sample (patient_id);
+CREATE INDEX IF NOT EXISTS sample_cohort_idx ON sample (cohort);
+CREATE INDEX IF NOT EXISTS sample_cancer_group_idx ON sample (cancer_group);
+CREATE INDEX IF NOT EXISTS sample_rna_library_idx ON sample (rna_library);
