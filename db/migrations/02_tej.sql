@@ -19,14 +19,15 @@ CREATE TABLE IF NOT EXISTS "tej" (
     "preference_code"        TEXT,
     "novel_ss"               BOOLEAN,
     "junction_name"          TEXT,
-    "consensus_specificity"  TEXT,
     "status"                 TEXT,
+    "criteria"               TEXT,
+    "library_bias"           TEXT,
     "min_cpm_fc_all"         REAL,
-    "min_cpm_fc_postnatal"   REAL,
     "min_cpm_snr_all"        REAL,
-    "min_cpm_snr_postnatal"  REAL,
     "max_mean_cpm_all"       REAL,
-    "max_mean_cpm_postnatal" REAL
+    "max_prenatal_min_cpm_fc"  REAL,
+    "max_prenatal_min_cpm_snr" REAL,
+    "oncofetal_prenatal_group" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS "tej_domain" (
