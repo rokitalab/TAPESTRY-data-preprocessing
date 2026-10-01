@@ -159,17 +159,6 @@ def main() -> None:
             for row in cur.fetchall():
                 print(f"  {row[0]}: {row[1]}")
 
-            # --- TEJ: by consensus_specificity ---
-            cur.execute("""
-                SELECT consensus_specificity, COUNT(*) AS n
-                FROM tej
-                GROUP BY consensus_specificity
-                ORDER BY n DESC
-            """)
-            print("\nTEJ by consensus_specificity")
-            for row in cur.fetchall():
-                print(f"  {row[0]}: {row[1]}")
-
 
 if __name__ == "__main__":
     main()
