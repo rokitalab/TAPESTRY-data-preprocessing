@@ -130,17 +130,18 @@ def load_tumor(rows: list[dict[str, str]], conn) -> None:
         cur.executemany(
             """
             INSERT INTO sample (
-                biospecimen_id, patient_id, cancer_group, molecular_subtype,
+                biospecimen_id, patient_id, sample_id, cancer_group, molecular_subtype,
                 match_id, resection, primary_site, cns_region,
                 plot_group, cohort, sub_cohort, rna_library,
                 composition, tumor_descriptor, is_independent_primary
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (biospecimen_id) DO NOTHING
             """,
             [
                 (
                     _str(row["Kids_First_Biospecimen_ID"]),
                     _str(row["Kids_First_Participant_ID"]),
+                    _str(row["sample_id"]),
                     _str(row.get("cancer_group")),
                     _str(row.get("molecular_subtype")),
                     _str(row.get("match_id")),
@@ -196,7 +197,7 @@ def load_controls(
                 ],
             )
 
-        # 2. sample (controls have no cancer_group or molecular_subtype)
+        # 2. sample (controls have no cancer_group, sample_id, or molecular_subtype)
         cur.executemany(
             """
             INSERT INTO sample (

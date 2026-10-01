@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS "patient" (
 CREATE TABLE IF NOT EXISTS "sample" (
     "biospecimen_id"    TEXT PRIMARY KEY,
     "patient_id"        TEXT REFERENCES "patient"("patient_id") ON DELETE CASCADE,
+    "sample_id"		TEXT,
     "cancer_group"      TEXT,
     "molecular_subtype" TEXT,
     "match_id"          TEXT,
