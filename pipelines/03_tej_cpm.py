@@ -3,8 +3,9 @@
 03_tej_cpm.py
 
 ETL for TEJ CPM matrices → tej_cpm table.
-Loads both tumor and control RDS files and unpivots junction × sample → rows.
-Log2 batch-corrected CPM (tumor only) is merged in before insertion.
+Loads tumor (qs2) and control (RDS) CPM files and unpivots junction × sample → rows.
+ComBat batch-corrected CPM (tumor only; linear scale, not log2) is merged in
+before insertion.
 
 Run:
   python -m pipelines.03_tej_cpm
@@ -22,9 +23,9 @@ import pandas as pd
 
 from db.connection import get_connection
 
-TUMOR_FILE = Path("data/v2/tumor-enriched-oncofetal-splice-junction-cpm.rds")
-CTRLS_FILE = Path("data/v2/tumor-enriched-oncofetal-splice-junction-cpm-ctrls.rds")
-LOG2_FILE  = Path("data/v2/tumor-enriched-oncofetal-splice-junction-log2-cpm-combat-corrected.qs2")
+TUMOR_FILE = Path("data/tumor-enriched-oncofetal-splice-junction-cpm.qs2")
+CTRLS_FILE = Path("data/tumor-enriched-oncofetal-splice-junction-cpm-ctrls.rds")
+CORRECTED_FILE = Path("data/tumor-enriched-oncofetal-splice-junction-cpm-combat-corrected.qs2")
 
 _BATCH = 50_000
 
@@ -50,7 +51,7 @@ def _read_qs2(path: Path) -> pd.DataFrame:
 def _insert(cur, rows: list[tuple]) -> None:
     cur.executemany(
         """
-        INSERT INTO tej_cpm (junction, biospecimen_id, cpm, log2_cpm_corrected)
+        INSERT INTO tej_cpm (junction, biospecimen_id, cpm, cpm_corrected)
         VALUES (%s, %s, %s, %s)
         ON CONFLICT (junction, biospecimen_id) DO NOTHING
         """,
@@ -68,13 +69,13 @@ def _nullable(val) -> float | None:
 
 def load_tumor(conn) -> None:
     print(f"Reading tumor CPM ({TUMOR_FILE.name})...")
-    cpm = _to_long(_read_rds(TUMOR_FILE), "cpm")
+    cpm = _to_long(_read_qs2(TUMOR_FILE), "cpm")
 
-    print(f"Reading log2 corrected CPM ({LOG2_FILE.name})...")
-    log2 = _to_long(_read_qs2(LOG2_FILE), "log2_cpm_corrected")
+    print(f"Reading batch-corrected CPM ({CORRECTED_FILE.name})...")
+    corrected = _to_long(_read_qs2(CORRECTED_FILE), "cpm_corrected")
 
-    merged = cpm.merge(log2, on=["junction", "biospecimen_id"], how="left")
-    print(f"  {len(merged):,} rows ({merged['log2_cpm_corrected'].isna().sum():,} NULL log2)")
+    merged = cpm.merge(corrected, on=["junction", "biospecimen_id"], how="left")
+    print(f"  {len(merged):,} rows ({merged['cpm_corrected'].isna().sum():,} NULL corrected)")
 
     tuples = [
         (j, b, _nullable(c), _nullable(l))
@@ -111,7 +112,7 @@ def load_controls(conn) -> None:
 
 
 def main() -> None:
-    for path in (TUMOR_FILE, CTRLS_FILE, LOG2_FILE):
+    for path in (TUMOR_FILE, CTRLS_FILE, CORRECTED_FILE):
         if not path.exists():
             raise SystemExit(f"Input file not found: {path}")
 
