@@ -14,6 +14,11 @@ CREATE TABLE IF NOT EXISTS "plot_group" (
     "name"  TEXT NOT NULL UNIQUE
 );
 
+-- The primary key (gene_symbol, chr, intron_start, intron_end, plot_group_id),
+-- the foreign key to plot_group, and the gene_symbol / plot_group_id indexes
+-- are (re)built by pipelines/05_gene_junction_summary.py after it bulk-loads
+-- the table with COPY. Keeping them out of this file also stops repeated
+-- `db.migrate` runs from stacking up duplicate unnamed indexes.
 CREATE TABLE IF NOT EXISTS "gene_junction_summary" (
     "gene_symbol"          TEXT NOT NULL,
     "chr"                  TEXT NOT NULL,
@@ -21,13 +26,9 @@ CREATE TABLE IF NOT EXISTS "gene_junction_summary" (
     "intron_end"           INTEGER NOT NULL,
     "strand"               TEXT CHECK (strand IN ('+', '-') OR strand IS NULL),
     "annotated"            BOOLEAN NOT NULL,
-    "plot_group_id"        SMALLINT NOT NULL REFERENCES "plot_group" ("id"),
+    "plot_group_id"        SMALLINT NOT NULL,
     "num_samples_detected" INTEGER NOT NULL,
     "median_cpm"           REAL NOT NULL,
     "mean_cpm"             REAL NOT NULL,
-    "total_reads"          INTEGER NOT NULL,
-    PRIMARY KEY ("gene_symbol", "chr", "intron_start", "intron_end", "plot_group_id")
+    "total_reads"          INTEGER NOT NULL
 );
-
-CREATE INDEX ON gene_junction_summary (gene_symbol);
-CREATE INDEX ON gene_junction_summary (plot_group_id);
