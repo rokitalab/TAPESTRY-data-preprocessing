@@ -27,7 +27,7 @@ LEFT JOIN sample_tej st             ON t.junction = st.junction
 LEFT JOIN sample s                   ON st.biospecimen_id = s.biospecimen_id
 LEFT JOIN tej_recurrence tr         ON t.junction = tr.junction
 LEFT JOIN tej_domain td             ON t.junction = td.junction
-WHERE s.cancer_group IS NOT NULL
+WHERE s.cohort = 'PBTA'
 GROUP BY t.gene_symbol;
 
 CREATE INDEX ON tej_gene_summary (gene);
@@ -54,7 +54,7 @@ SELECT
 FROM sample s
 LEFT JOIN sample_tej st ON s.biospecimen_id = st.biospecimen_id
 LEFT JOIN tej t         ON st.junction = t.junction
-WHERE s.cancer_group IS NOT NULL
+WHERE s.cohort = 'PBTA'
 GROUP BY s.plot_group;
 
 CREATE INDEX ON tej_histology_summary (plot_group);
