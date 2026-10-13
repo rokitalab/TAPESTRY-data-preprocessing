@@ -3,7 +3,7 @@ set -o pipefail
 
 # Define S3 bucket location and data release version
 URL=${BUCKET_URL:-https://s3.amazonaws.com/bti-openaccess-us-east-1-prd-rokita-lab/tapestry} 
-RELEASE=${RELEASE:-v2}
+RELEASE=${RELEASE:-v3}
 
 # Remove old symlinks in data
 find data -type l -delete
@@ -34,7 +34,7 @@ then
   curl -k -O $GENCODE39
 fi
 
-# Check the md5s for everything we downloaded except CHANGELOG.md
+# Check the md5s for everything we downloaded
 cd $RELEASE
 echo "Checking MD5 hashes..."
 md5sum -c md5sum.txt
