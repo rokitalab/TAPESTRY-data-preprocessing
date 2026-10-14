@@ -10,8 +10,8 @@ SELECT
     COUNT(DISTINCT t.junction)         AS num_junctions,
     COUNT(DISTINCT tr.plot_group)      AS num_plot_groups,
     COUNT(DISTINCT td.domain_name)     AS num_domains_affected,
-    COUNT(DISTINCT CASE WHEN t.consensus_specificity = 'Oncofetal' THEN t.junction END)      AS num_oncofetal,
-    COUNT(DISTINCT CASE WHEN t.consensus_specificity = 'Tumor-specific' THEN t.junction END) AS num_tumor_specific,
+    COUNT(DISTINCT CASE WHEN t.junction_preference = 'Oncofetal' THEN t.junction END)      AS num_oncofetal,
+    COUNT(DISTINCT CASE WHEN t.junction_preference = 'Tumor-enriched' THEN t.junction END) AS num_tumor_specific,
     COUNT(DISTINCT CASE WHEN t.status = 'Annotated junction' THEN t.junction END)           AS num_annotated_junction,
     COUNT(DISTINCT CASE WHEN t.status = 'Novel junction' THEN t.junction END)               AS num_novel_junction,
     COUNT(DISTINCT CASE WHEN t.status = 'Novel splice site' THEN t.junction END)            AS num_novel_splice_site,
@@ -27,7 +27,7 @@ LEFT JOIN sample_tej st             ON t.junction = st.junction
 LEFT JOIN sample s                   ON st.biospecimen_id = s.biospecimen_id
 LEFT JOIN tej_recurrence tr         ON t.junction = tr.junction
 LEFT JOIN tej_domain td             ON t.junction = td.junction
-WHERE s.cancer_group IS NOT NULL
+WHERE s.cohort = 'PBTA'
 GROUP BY t.gene_symbol;
 
 CREATE INDEX ON tej_gene_summary (gene);
@@ -39,8 +39,8 @@ SELECT
     COUNT(DISTINCT s.biospecimen_id)                                                         AS num_samples,
     COUNT(DISTINCT st.junction)                                                              AS num_junctions,
     COUNT(DISTINCT t.gene_symbol)                                                            AS num_genes,
-    COUNT(DISTINCT CASE WHEN t.consensus_specificity = 'Oncofetal' THEN st.junction END)    AS num_oncofetal,
-    COUNT(DISTINCT CASE WHEN t.consensus_specificity = 'Tumor-specific' THEN st.junction END) AS num_tumor_specific,
+    COUNT(DISTINCT CASE WHEN t.junction_preference = 'Oncofetal' THEN st.junction END)    AS num_oncofetal,
+    COUNT(DISTINCT CASE WHEN t.junction_preference = 'Tumor-enriched' THEN st.junction END) AS num_tumor_specific,
     COUNT(DISTINCT CASE WHEN t.status = 'Annotated junction' THEN st.junction END)          AS num_annotated_junction,
     COUNT(DISTINCT CASE WHEN t.status = 'Novel junction' THEN st.junction END)              AS num_novel_junction,
     COUNT(DISTINCT CASE WHEN t.status = 'Novel splice site' THEN st.junction END)           AS num_novel_splice_site,
@@ -54,7 +54,7 @@ SELECT
 FROM sample s
 LEFT JOIN sample_tej st ON s.biospecimen_id = st.biospecimen_id
 LEFT JOIN tej t         ON st.junction = t.junction
-WHERE s.cancer_group IS NOT NULL
+WHERE s.cohort = 'PBTA'
 GROUP BY s.plot_group;
 
 CREATE INDEX ON tej_histology_summary (plot_group);

@@ -1,6 +1,44 @@
 # release notes
 
-## current release (v2)
+## current release (v3)
+-   Release date: 2026-10-13
+-   OpenPedCan data release date: 2024-03-01 (v15)
+-   Status: available
+
+## Data sources:
+PBTA Tumor enriched splicing repo - [commit 411f9b4667d7a77bc0c742e27bdba31740335d11](https://github.com/rokitalab/pbta-tumor-enriched-junctions/commit/411f9b4667d7a77bc0c742e27bdba31740335d11)
+- `cohort-histologies.tsv`
+- `control-cohort-histologies.tsv`
+- `recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated-domain-updated.tsv.gz`
+- `tumor-enriched-oncofetal-splice-junction-cpm-combat-corrected.qs2`
+- `tumor-enriched-oncofetal-splice-junction-cpm-ctrls.rds`
+- `tumor-enriched-oncofetal-splice-junction-cpm.qs2`
+- `histologies.tsv` aka `analyses/00-create-cohort-histologies/input/histologies-rare-cns.tsv`
+- `evodevo-histologies.tsv` from v13 data release
+- `ped-normal-brain-histologies.tsv` from v13 data release
+
+Processed data from STAR splice junctions [SJ.merged.tsv.gz](s3://bti-openaccess-us-east-1-prd-rokita-lab/tapestry/v3/SJ.merged.tsv.gz):
+- `library_sizes.tsv` via `pipelines/sj_library_size.py`
+- `gene_junction_summary.tsv.gz` via `pipelines/gene_junction_summary_compute.py` 
+
+```
+v3
+├── cohort-histologies.tsv
+├── control-cohort-histologies.tsv
+├── evodevo-histologies.tsv
+├── gene_junction_summary.tsv.gz
+├── histologies.tsv
+├── library_sizes.tsv
+├── md5sum.txt
+├── ped-normal-brain-histologies.tsv
+├── recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated-domain-updated.tsv.gz
+├── release-notes.md
+├── tumor-enriched-oncofetal-splice-junction-cpm-combat-corrected.qs2
+├── tumor-enriched-oncofetal-splice-junction-cpm-ctrls.rds
+└── tumor-enriched-oncofetal-splice-junction-cpm.qs2
+```
+
+## archived release (v2)
 -   Release date: 2026-04-10
 -   OpenPedCan data release date: 2024-03-01 (v15)
 -   Status: available

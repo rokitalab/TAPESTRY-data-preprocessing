@@ -1,6 +1,6 @@
 # tej Tables
 
-Tumor-enriched and oncofetal splice junction data. Built from the recurrent primary-tumor file (`recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated.tsv.gz`).
+Tumor-enriched and oncofetal splice junction data. Built from the recurrent primary-tumor file (`recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated-domain-updated.tsv.gz`, v3 release).
 
 ## DDL (from `db/migrations/02_tej.sql`)
 
@@ -22,41 +22,53 @@ CREATE TABLE IF NOT EXISTS "tej" (
     "preference_code"        TEXT,
     "novel_ss"               BOOLEAN,
     "junction_name"          TEXT,
-    "consensus_specificity"  TEXT,
     "status"                 TEXT,
+    "criteria"               TEXT,
+    "library_bias"           TEXT,
     "min_cpm_fc_all"         REAL,
-    "min_cpm_fc_postnatal"   REAL,
     "min_cpm_snr_all"        REAL,
-    "min_cpm_snr_postnatal"  REAL,
     "max_mean_cpm_all"       REAL,
-    "max_mean_cpm_postnatal" REAL
+    "max_prenatal_min_cpm_fc"  REAL,
+    "max_prenatal_min_cpm_snr" REAL,
+    "oncofetal_prenatal_group" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS "tej_domain" (
-    "id"                SERIAL PRIMARY KEY,
-    "junction"          TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
-    "domain_source"     TEXT NOT NULL,
-    "domain_type"       TEXT,
-    "domain_name"       TEXT,
+    "id"              SERIAL PRIMARY KEY,
+    "junction"        TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
+    "domain_source"   TEXT NOT NULL,
+    "domain_type"     TEXT,
+    "domain_name"     TEXT,
     "domain_description" TEXT,
-    "domain_start"      INTEGER,
-    "domain_end"        INTEGER,
-    "overlap_type"      TEXT,
-    "overlaps_domain"   BOOLEAN
+    "domain_start"    INTEGER,
+    "domain_end"      INTEGER,
+    "overlap_type"    TEXT,
+    "overlaps_domain" BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS "sample_tej" (
-    "biospecimen_id"    TEXT NOT NULL REFERENCES "sample"("biospecimen_id") ON DELETE CASCADE,
-    "junction"          TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
-    "junction_cpm"      REAL,
-    "gene_tpm"          REAL,
-    "junction_count"    INTEGER,
+    "biospecimen_id"   TEXT NOT NULL REFERENCES "sample"("biospecimen_id") ON DELETE CASCADE,
+    "junction"         TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
+    "junction_cpm"     REAL,
+    "gene_tpm"         REAL,
+    "junction_count"   INTEGER,
     "event_type_sample" TEXT,
     PRIMARY KEY ("biospecimen_id", "junction")
+);
+
+CREATE TABLE IF NOT EXISTS "tej_recurrence" (
+    "junction"       TEXT NOT NULL REFERENCES "tej"("junction") ON DELETE CASCADE,
+    "plot_group"     TEXT NOT NULL,
+    "sample_count"   INTEGER NOT NULL,
+    "total_samples"  INTEGER NOT NULL,
+    "pct"            REAL NOT NULL,
+    PRIMARY KEY ("junction", "plot_group")
 );
 ```
 
 ## tej columns
+
+One row per junction (45,430 in v3: 41,502 `Tumor-enriched`, 3,928 `Oncofetal`).
 
 | Column | Type | Source | Notes |
 |---|---|---|---|
@@ -76,18 +88,19 @@ CREATE TABLE IF NOT EXISTS "sample_tej" (
 | `preference_code` | TEXT | `preference_code` | e.g. `EI`, `ES`, `A3+` |
 | `novel_ss` | BOOLEAN | `novel_ss` | `Yes` → `TRUE` |
 | `junction_name` | TEXT | `junction_name` | |
-| `consensus_specificity` | TEXT | `consensus_specificity` | `Oncofetal` or `Tumor-specific` |
 | `status` | TEXT | `status` | `Annotated junction`, `Novel junction`, or `Novel splice site` |
+| `criteria` | TEXT | `criteria` | `enriched expr vs. ctrls` or `No ctrl expr, novel SS usage` |
+| `library_bias` | TEXT | `library_bias` | `none`, `polyA`, or `total_RNA` |
 | `min_cpm_fc_all` | REAL | `min_cpm_fc_all` | |
-| `min_cpm_fc_postnatal` | REAL | `min_cpm_fc_postnatal` | |
 | `min_cpm_snr_all` | REAL | `min_cpm_snr_all` | |
-| `min_cpm_snr_postnatal` | REAL | `min_cpm_snr_postnatal` | |
 | `max_mean_cpm_all` | REAL | `max_mean_cpm_all` | |
-| `max_mean_cpm_postnatal` | REAL | `max_mean_cpm_postnatal` | |
+| `max_prenatal_min_cpm_fc` | REAL | `max_prenatal_min_cpm_fc` | |
+| `max_prenatal_min_cpm_snr` | REAL | `max_prenatal_min_cpm_snr` | |
+| `oncofetal_prenatal_group` | TEXT | `oncofetal_prenatal_group` | Semicolon-separated Evo-devo prenatal groups, e.g. `Forebrain-13-16pcw_early_midfetal;Hindbrain-6-7pcw_late_embryonic` |
 
 ## tej_domain columns
 
-One row per domain annotation. ~42% of junctions have at least one domain; a junction may have both a pfam and a uniprot entry (two rows).
+One row per domain annotation (39,882 rows in v3). ~39% of junctions have at least one domain; a junction may have both a pfam and a uniprot entry (two rows).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -104,7 +117,7 @@ One row per domain annotation. ~42% of junctions have at least one domain; a jun
 
 ## sample_tej columns
 
-One row per `(biospecimen_id, junction)` pair.
+One row per `(biospecimen_id, junction)` pair (785,417 rows in v3, one per row of the recurrent file).
 
 | Column | Type | Source | Notes |
 |---|---|---|---|
@@ -117,7 +130,7 @@ One row per `(biospecimen_id, junction)` pair.
 
 ## tej_recurrence columns
 
-One row per `(junction, plot_group)` pair. Denominator is the count of independent-primary RNA-seq specimens per `plot_group` from the `sample` table (`is_independent_primary = TRUE AND rna_library IS NOT NULL AND plot_group IS NOT NULL`).
+One row per `(junction, plot_group)` pair (106,659 rows in v3). Denominator is the count of independent-primary RNA-seq specimens per `plot_group` from the `sample` table (`is_independent_primary = TRUE AND rna_library IS NOT NULL AND plot_group IS NOT NULL`).
 
 | Column | Type | Notes |
 |---|---|---|

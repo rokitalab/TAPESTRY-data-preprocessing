@@ -16,6 +16,11 @@ gene_junction_summary_compute.py and needs no DB connection. This script is
 the comparatively fast, DB-only tail end, kept separate so the expensive
 compute pass never has to be repeated just to retry a load.
 
+This is a full reload: in one transaction the table is truncated, its primary
+key, foreign key and indexes are dropped, the TSV is bulk-loaded with COPY, and
+the constraints and indexes are rebuilt once at the end. A failure rolls back
+to the previous contents. The table is locked against reads while it runs.
+
 Run:
   python -m pipelines.gene_junction_summary_compute   # writes the TSV first
   python -m pipelines.05_gene_junction_summary         # then load it
@@ -25,97 +30,129 @@ Environment (read by db package):
 """
 from __future__ import annotations
 
+import gzip
 from pathlib import Path
+
+from psycopg import sql
 
 from db.connection import get_connection
 
-import gzip
-
 INPUT_FILE = Path("data/v3/gene_junction_summary.tsv.gz")
 
-_BATCH = 50_000
+# TSV lines per COPY write.
+_BATCH = 100_000
+
+_ADD_CONSTRAINTS = """
+    ALTER TABLE gene_junction_summary ADD CONSTRAINT gene_junction_summary_pkey
+        PRIMARY KEY (gene_symbol, chr, intron_start, intron_end, plot_group_id);
+    ALTER TABLE gene_junction_summary ADD CONSTRAINT gene_junction_summary_plot_group_id_fkey
+        FOREIGN KEY (plot_group_id) REFERENCES plot_group (id);
+    CREATE INDEX gene_junction_summary_gene_symbol_idx ON gene_junction_summary (gene_symbol);
+    CREATE INDEX gene_junction_summary_plot_group_id_idx ON gene_junction_summary (plot_group_id);
+"""
 
 
-def read_rows(path: Path):
+def read_groups(path: Path) -> set[str]:
+    """Distinct plot_group names in the TSV, so their ids can be resolved
+    before COPY starts (no other statements can run mid-COPY)."""
+    groups: set[str] = set()
+    with gzip.open(path, "rt") as f:
+        next(f)  # header
+        for line in f:
+            groups.add(line.split("\t", 7)[6])
+    return groups
+
+
+def _resolve_group_ids(cur, names: set[str]) -> dict[str, int]:
+    """plot_group has only a few dozen distinct values, so this is at most a
+    few dozen round trips for the whole load, not one per summary row."""
+    ids: dict[str, int] = {}
+    for name in sorted(names):
+        cur.execute(
+            """
+            INSERT INTO plot_group (name) VALUES (%s)
+            ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+            RETURNING id
+            """,
+            (name,),
+        )
+        ids[name] = cur.fetchone()[0]
+    return ids
+
+
+def copy_lines(path: Path, group_ids: dict[str, int]):
+    """Yield TSV rows rewritten as COPY text-format lines: empty strand → NULL,
+    annotated "1" → true, plot_group name → id. Numeric fields pass through
+    as-is and are validated by Postgres."""
     with gzip.open(path, "rt") as f:
         next(f)  # header
         for line in f:
             gene, chrom, istart, iend, strand, annotated, group, num_samples_detected, median_cpm, mean_cpm, total_reads = (
                 line.rstrip("\n").split("\t")
             )
-            yield (
-                gene,
-                chrom,
-                int(istart),
-                int(iend),
-                strand or None,
-                annotated == "1",
-                group,
-                int(num_samples_detected),
-                float(median_cpm),
-                float(mean_cpm),
-                int(total_reads),
-            )
+            yield "\t".join((
+                gene, chrom, istart, iend,
+                strand or "\\N",
+                "t" if annotated == "1" else "f",
+                str(group_ids[group]),
+                num_samples_detected, median_cpm, mean_cpm, total_reads,
+            )) + "\n"
 
 
-def _group_id(cur, cache: dict[str, int], name: str) -> int:
-    """plot_group has only a few dozen distinct values, so resolving them
-    through `plot_group` (creating new rows as needed) costs at most a
-    few dozen round trips for the whole load, not one per summary row."""
-    if name in cache:
-        return cache[name]
+def _drop_constraints_and_indexes(cur) -> None:
+    """Drop the PK, FK and every secondary index -- including any duplicate
+    unnamed indexes left by earlier versions of the migration."""
+    cur.execute("ALTER TABLE gene_junction_summary DROP CONSTRAINT IF EXISTS gene_junction_summary_pkey")
+    cur.execute("ALTER TABLE gene_junction_summary DROP CONSTRAINT IF EXISTS gene_junction_summary_plot_group_id_fkey")
     cur.execute(
         """
-        INSERT INTO plot_group (name) VALUES (%s)
-        ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-        RETURNING id
-        """,
-        (name,),
+        SELECT indexname FROM pg_indexes
+        WHERE schemaname = current_schema() AND tablename = 'gene_junction_summary'
+        """
     )
-    group_id = cur.fetchone()[0]
-    cache[name] = group_id
-    return group_id
+    for (name,) in cur.fetchall():
+        cur.execute(sql.SQL("DROP INDEX {}").format(sql.Identifier(name)))
 
 
 def load(conn, path: Path) -> None:
-    batch: list[tuple] = []
-    n = 0
-    group_ids: dict[str, int] = {}
+    print("Scanning plot_group names...")
+    groups = read_groups(path)
+
     with conn.cursor() as cur:
-        for row in read_rows(path):
-            gene, chrom, istart, iend, strand, annotated, group, num_samples_detected, median_cpm, mean_cpm, total_reads = row
-            group_id = _group_id(cur, group_ids, group)
-            batch.append((
-                gene, chrom, istart, iend, strand, annotated, group_id,
-                num_samples_detected, median_cpm, mean_cpm, total_reads,
-            ))
-            if len(batch) >= _BATCH:
-                _insert(cur, batch)
+        group_ids = _resolve_group_ids(cur, groups)
+        print(f"  {len(group_ids)} plot_groups resolved.")
+
+        cur.execute("TRUNCATE gene_junction_summary")
+        _drop_constraints_and_indexes(cur)
+
+        print("COPYing rows...")
+        n = 0
+        batch: list[str] = []
+        with cur.copy(
+            """
+            COPY gene_junction_summary (
+                gene_symbol, chr, intron_start, intron_end, strand, annotated,
+                plot_group_id, num_samples_detected, median_cpm, mean_cpm, total_reads
+            ) FROM STDIN
+            """
+        ) as copy:
+            for line in copy_lines(path, group_ids):
+                batch.append(line)
+                if len(batch) >= _BATCH:
+                    copy.write("".join(batch))
+                    n += len(batch)
+                    batch.clear()
+                    print(f"  {n:,} rows", end="\r")
+            if batch:
+                copy.write("".join(batch))
                 n += len(batch)
-                batch.clear()
-        if batch:
-            _insert(cur, batch)
-            n += len(batch)
+        print(f"  {n:,} rows")
+
+        print("Rebuilding primary key, foreign key and indexes...")
+        cur.execute(_ADD_CONSTRAINTS)
+        cur.execute("ANALYZE gene_junction_summary")
     conn.commit()
     print(f"Loaded {n:,} rows into gene_junction_summary.")
-
-
-def _insert(cur, batch: list[tuple]) -> None:
-    cur.executemany(
-        """
-        INSERT INTO gene_junction_summary (
-            gene_symbol, chr, intron_start, intron_end, strand, annotated,
-            plot_group_id, num_samples_detected, median_cpm, mean_cpm, total_reads
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (gene_symbol, chr, intron_start, intron_end, plot_group_id)
-        DO UPDATE SET annotated = EXCLUDED.annotated,
-                      num_samples_detected = EXCLUDED.num_samples_detected,
-                      median_cpm = EXCLUDED.median_cpm,
-                      mean_cpm = EXCLUDED.mean_cpm,
-                      total_reads = EXCLUDED.total_reads
-        """,
-        batch,
-    )
 
 
 def main() -> None:

@@ -31,7 +31,7 @@ def main() -> None:
             # --- sample: tumor vs control ---
             cur.execute("""
                 SELECT
-                    CASE WHEN cancer_group IS NOT NULL THEN 'tumor' ELSE 'control' END AS type,
+                    CASE WHEN cohort = 'PBTA' THEN 'tumor' ELSE 'control' END AS type,
                     COUNT(*) AS n
                 FROM sample
                 GROUP BY 1
@@ -109,7 +109,7 @@ def main() -> None:
             # --- tej_cpm: tumor vs control ---
             cur.execute("""
                 SELECT
-                    CASE WHEN s.cancer_group IS NOT NULL THEN 'tumor' ELSE 'control' END AS type,
+                    CASE WHEN s.cohort = 'PBTA' THEN 'tumor' ELSE 'control' END AS type,
                     COUNT(DISTINCT tc.biospecimen_id) AS samples,
                     COUNT(*) AS rows
                 FROM tej_cpm tc
@@ -156,17 +156,6 @@ def main() -> None:
                 ORDER BY n DESC
             """)
             print("\nTEJ by junction_preference")
-            for row in cur.fetchall():
-                print(f"  {row[0]}: {row[1]}")
-
-            # --- TEJ: by consensus_specificity ---
-            cur.execute("""
-                SELECT consensus_specificity, COUNT(*) AS n
-                FROM tej
-                GROUP BY consensus_specificity
-                ORDER BY n DESC
-            """)
-            print("\nTEJ by consensus_specificity")
             for row in cur.fetchall():
                 print(f"  {row[0]}: {row[1]}")
 

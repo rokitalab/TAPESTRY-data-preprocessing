@@ -11,7 +11,7 @@ services:
         python -m pipelines.01_histologies &&
         python -m pipelines.02_tej &&
         python -m pipelines.03_tej_cpm &&
-        python -m pipelines.05_gene_junction_summary.py &&
+        python -m pipelines.05_gene_junction_summary &&
         python -m pipelines.status &&
         python -m pipelines.refresh_views
       "

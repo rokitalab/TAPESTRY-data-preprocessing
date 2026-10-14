@@ -14,6 +14,8 @@ REFRESH MATERIALIZED VIEW tej_histology_summary;
 
 One row per gene. Aggregates TEJ junction counts across `tej`, `sample_tej`, `tej_recurrence`, and `tej_domain`.
 
+Restricted to `sample.cohort = 'PBTA'`. Because that filter is in the `WHERE` clause on a `LEFT JOIN`ed table, junctions with no PBTA sample in `sample_tej` are excluded entirely, along with genes whose junctions are all in that situation.
+
 | Column | Type | Notes |
 |---|---|---|
 | `gene` | TEXT | `tej.gene_symbol` |
@@ -21,8 +23,8 @@ One row per gene. Aggregates TEJ junction counts across `tej`, `sample_tej`, `te
 | `num_junctions` | BIGINT | Distinct junctions |
 | `num_plot_groups` | BIGINT | Distinct plot groups in `tej_recurrence` |
 | `num_domains_affected` | BIGINT | Distinct domain names in `tej_domain` |
-| `num_oncofetal` | BIGINT | Junctions where `consensus_specificity = 'Oncofetal'` |
-| `num_tumor_specific` | BIGINT | Junctions where `consensus_specificity = 'Tumor-specific'` |
+| `num_oncofetal` | BIGINT | Junctions where `junction_preference = 'Oncofetal'` |
+| `num_tumor_specific` | BIGINT | Junctions where `junction_preference = 'Tumor-enriched'` |
 | `num_annotated_junction` | BIGINT | Junctions where `status = 'Annotated junction'` |
 | `num_novel_junction` | BIGINT | Junctions where `status = 'Novel junction'` |
 | `num_novel_splice_site` | BIGINT | Junctions where `status = 'Novel splice site'` |
@@ -49,14 +51,16 @@ tej_domain (domain_name)    → tej_gene_summary.num_domains_affected
 
 One row per histology (`plot_group`). Aggregates TEJ junction counts across `sample`, `sample_tej`, and `tej`.
 
+Restricted to `sample.cohort = 'PBTA'`, so control plot groups are not included.
+
 | Column | Type | Notes |
 |---|---|---|
 | `plot_group` | TEXT | `sample.plot_group` |
 | `num_samples` | BIGINT | Distinct biospecimen IDs in this plot group |
 | `num_junctions` | BIGINT | Distinct junctions observed in this plot group |
 | `num_genes` | BIGINT | Distinct genes with at least one junction in this plot group |
-| `num_oncofetal` | BIGINT | Junctions where `consensus_specificity = 'Oncofetal'` |
-| `num_tumor_specific` | BIGINT | Junctions where `consensus_specificity = 'Tumor-specific'` |
+| `num_oncofetal` | BIGINT | Junctions where `junction_preference = 'Oncofetal'` |
+| `num_tumor_specific` | BIGINT | Junctions where `junction_preference = 'Tumor-enriched'` |
 | `num_annotated_junction` | BIGINT | Junctions where `status = 'Annotated junction'` |
 | `num_novel_junction` | BIGINT | Junctions where `status = 'Novel junction'` |
 | `num_novel_splice_site` | BIGINT | Junctions where `status = 'Novel splice site'` |

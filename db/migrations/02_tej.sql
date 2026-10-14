@@ -19,14 +19,15 @@ CREATE TABLE IF NOT EXISTS "tej" (
     "preference_code"        TEXT,
     "novel_ss"               BOOLEAN,
     "junction_name"          TEXT,
-    "consensus_specificity"  TEXT,
     "status"                 TEXT,
+    "criteria"               TEXT,
+    "library_bias"           TEXT,
     "min_cpm_fc_all"         REAL,
-    "min_cpm_fc_postnatal"   REAL,
     "min_cpm_snr_all"        REAL,
-    "min_cpm_snr_postnatal"  REAL,
     "max_mean_cpm_all"       REAL,
-    "max_mean_cpm_postnatal" REAL
+    "max_prenatal_min_cpm_fc"  REAL,
+    "max_prenatal_min_cpm_snr" REAL,
+    "oncofetal_prenatal_group" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS "tej_domain" (
@@ -61,8 +62,8 @@ CREATE TABLE IF NOT EXISTS "tej_recurrence" (
     PRIMARY KEY ("junction", "plot_group")
 );
 
-CREATE INDEX ON tej (gene_symbol);
-CREATE INDEX ON tej (junction_preference);
-CREATE INDEX ON tej_domain (junction);
-CREATE INDEX ON sample_tej (junction);
-CREATE INDEX ON tej_recurrence (plot_group);
+CREATE INDEX IF NOT EXISTS tej_gene_symbol_idx ON tej (gene_symbol);
+CREATE INDEX IF NOT EXISTS tej_junction_preference_idx ON tej (junction_preference);
+CREATE INDEX IF NOT EXISTS tej_domain_junction_idx ON tej_domain (junction);
+CREATE INDEX IF NOT EXISTS sample_tej_junction_idx ON sample_tej (junction);
+CREATE INDEX IF NOT EXISTS tej_recurrence_plot_group_idx ON tej_recurrence (plot_group);
