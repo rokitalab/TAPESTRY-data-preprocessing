@@ -79,6 +79,7 @@ def _junction_dict(row: dict) -> dict:
         "preference_code":        _str(row["preference_code"]),
         "novel_ss":               _bool_yes(row.get("novel_ss")),
         "junction_name":          _str(row["junction_name"]),
+        "transcript_id":          _str(row["transcript_id"]),
         "status":                 _str(row.get("status")),
         "criteria":               _str(row["criteria"]),
         "library_bias":           _str(row["library_bias"]),
@@ -162,7 +163,7 @@ def load(conn) -> None:
                 up_jc_start, up_jc_end, down_jc_start, down_jc_end,
                 in_cds, consequence, consensus_jc_event_type,
                 junction_preference, preference_code, novel_ss, junction_name,
-                status, criteria, library_bias,
+                transcript_id, status, criteria, library_bias,
                 min_cpm_fc_all, min_cpm_snr_all, max_mean_cpm_all,
                 max_prenatal_min_cpm_fc, max_prenatal_min_cpm_snr,
                 oncofetal_prenatal_group
@@ -171,7 +172,7 @@ def load(conn) -> None:
                 %(up_jc_start)s, %(up_jc_end)s, %(down_jc_start)s, %(down_jc_end)s,
                 %(in_cds)s, %(consequence)s, %(consensus_jc_event_type)s,
                 %(junction_preference)s, %(preference_code)s, %(novel_ss)s, %(junction_name)s,
-                %(status)s, %(criteria)s, %(library_bias)s,
+                %(transcript_id)s, %(status)s, %(criteria)s, %(library_bias)s,
                 %(min_cpm_fc_all)s, %(min_cpm_snr_all)s, %(max_mean_cpm_all)s,
                 %(max_prenatal_min_cpm_fc)s, %(max_prenatal_min_cpm_snr)s,
                 %(oncofetal_prenatal_group)s
