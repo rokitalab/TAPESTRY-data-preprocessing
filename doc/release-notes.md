@@ -6,7 +6,7 @@
 -   Status: available
 
 ## Data sources:
-PBTA Tumor enriched splicing repo - [commit 411f9b4667d7a77bc0c742e27bdba31740335d11](https://github.com/rokitalab/pbta-tumor-enriched-junctions/commit/411f9b4667d7a77bc0c742e27bdba31740335d11)
+PBTA Tumor enriched splicing repo - [commit b953408](https://github.com/rokitalab/pbta-tumor-enriched-junctions/commit/b9534085bdf24711f96204ff09bda29d9eedce89)
 - `cohort-histologies.tsv`
 - `control-cohort-histologies.tsv`
 - `recurrent-primary-tumor-enriched-oncofetal-splice-junctions-annotated-domain-updated.tsv.gz`
