@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS "tej" (
     "preference_code"        TEXT,
     "novel_ss"               BOOLEAN,
     "junction_name"          TEXT,
+    "transcript_id"          TEXT,
     "status"                 TEXT,
     "criteria"               TEXT,
     "library_bias"           TEXT,
@@ -88,6 +89,7 @@ One row per junction (45,430 in v3: 41,502 `Tumor-enriched`, 3,928 `Oncofetal`).
 | `preference_code` | TEXT | `preference_code` | e.g. `EI`, `ES`, `A3+` |
 | `novel_ss` | BOOLEAN | `novel_ss` | `Yes` → `TRUE` |
 | `junction_name` | TEXT | `junction_name` | |
+| `transcript_id` | TEXT | `transcript_id` | Versioned Ensembl ID, e.g. `ENST00000341472.9`; two IDs joined by `;` when the junction spans two transcripts; NULL for novel-exon events |
 | `status` | TEXT | `status` | `Annotated junction`, `Novel junction`, or `Novel splice site` |
 | `criteria` | TEXT | `criteria` | `enriched expr vs. ctrls` or `No ctrl expr, novel SS usage` |
 | `library_bias` | TEXT | `library_bias` | `none`, `polyA`, or `total_RNA` |

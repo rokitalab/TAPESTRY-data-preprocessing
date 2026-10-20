@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS "tej" (
     "preference_code"        TEXT,
     "novel_ss"               BOOLEAN,
     "junction_name"          TEXT,
+    "transcript_id"          TEXT,
     "status"                 TEXT,
     "criteria"               TEXT,
     "library_bias"           TEXT,
